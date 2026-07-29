@@ -8,6 +8,12 @@ void ViewManager::rebuild(const NodeConfiguration& nodeConfiguration, Navigation
     navigationController.clearTabs();
     _entries.clear();
 
+    // Collected alongside the addTab() calls below so each entry's
+    // tabIndex matches the tab lv_tabview actually created for it (alert
+    // views never get a tab and are excluded here too) - see
+    // NavigationController::setMenuEntries()'s doc comment.
+    std::vector<NavigationController::MenuEntry> menuEntries;
+
     for (const auto& deviceConfig : nodeConfiguration.deviceConfigurations) {
         auto view = ViewFactory::instance().create(deviceConfig.classFullName);
         if (!view) {
@@ -29,6 +35,8 @@ void ViewManager::rebuild(const NodeConfiguration& nodeConfiguration, Navigation
         if (!view->isAlert()) {
             lv_obj_t* tab = navigationController.addTab(deviceConfig.name);
             view->buildUi(tab);
+            menuEntries.push_back({deviceConfig.name, deviceConfig.classFullName,
+                                    static_cast<uint32_t>(menuEntries.size())});
         }
 
         Entry entry;
@@ -36,6 +44,8 @@ void ViewManager::rebuild(const NodeConfiguration& nodeConfiguration, Navigation
         entry.view = std::move(view);
         _entries.push_back(std::move(entry));
     }
+
+    navigationController.setMenuEntries(std::move(menuEntries));
 
     Serial.printf("[ViewManager] Rebuilt with %u view(s)\n", static_cast<unsigned>(_entries.size()));
 }

@@ -1,11 +1,48 @@
 #include "NavigationController.h"
 
+#include "Icons.h"
 #include "lv_font_montserrat_18_bpp8.h"
+
+namespace {
+constexpr lv_coord_t kMenuTileWidth = 88;
+constexpr lv_coord_t kMenuTileHeight = 96;
+
+// Maps a DeviceConfiguration's classFullName (e.g.
+// "RIoT2.Ard.M5Core2.Node.ButtonView") to the icon asset (see Icons.h,
+// converted from RIoT2.Ard.M5Dial.Node/Assets/icons) that best represents
+// it. Returns nullptr for view types with no matching icon (e.g.
+// EnergyGaugeView) - callers fall back to a plain text tile in that case.
+const lv_image_dsc_t* iconForClassFullName(const String& classFullName) {
+    // Longer/more-specific suffixes are checked first so e.g. "ButtonView"
+    // doesn't accidentally match something like "ToggleButtonView" (not a
+    // real class here, but keeps this robust either way).
+    if (classFullName.endsWith("ColorSchemeView")) return &icon_colorscheme;
+    if (classFullName.endsWith("SceneSelectorView")) return &icon_sceneselector;
+    if (classFullName.endsWith("ButtonView")) return &icon_button;
+    if (classFullName.endsWith("ClockView")) return &icon_clock;
+    if (classFullName.endsWith("PercentageView")) return &icon_percentage;
+    if (classFullName.endsWith("SliderView")) return &icon_slider;
+    if (classFullName.endsWith("TimerView")) return &icon_timer;
+    if (classFullName.endsWith("ToggleView")) return &icon_toggle;
+    if (classFullName.endsWith("ValueView")) return &icon_value;
+    if (classFullName.endsWith("BLEView")) return &icon_ble;
+    if (classFullName.endsWith("AlertView")) return &icon_alert;
+    if (classFullName.endsWith("NotificationView")) return &icon_notification;
+    return nullptr;
+}
+}  // namespace
 
 void NavigationController::begin() {
     _tabview = lv_tabview_create(lv_screen_active());
     lv_tabview_set_tab_bar_position(_tabview, LV_DIR_BOTTOM);
     lv_tabview_set_tab_bar_size(_tabview, 40);
+
+    // The menu overlay lives on lv_layer_top(), independent of _tabview, so
+    // it must only ever be built once - begin() itself is re-run every time
+    // clearTabs() recreates _tabview (see clearTabs() below).
+    if (!_menuOverlay) {
+        buildMenuOverlay();
+    }
 }
 
 lv_obj_t* NavigationController::addTab(const String& title) {
@@ -94,16 +131,180 @@ void NavigationController::onButtonPress(Button button) {
     Serial.printf("[Nav] onButtonPress: %d\n", static_cast<int>(button));
     switch (button) {
         case Button::A:
-            previousTab();
+            if (isMenuVisible()) {
+                moveMenuSelection(-1);
+            } else {
+                previousTab();
+            }
             break;
         case Button::B:
             if (_popupDismissHandler && _popupDismissHandler()) {
                 return;
             }
-            goToTab(0);
+            if (isMenuVisible()) {
+                confirmMenuSelection();
+            } else {
+                showMenu();
+            }
             break;
         case Button::C:
-            nextTab();
+            if (isMenuVisible()) {
+                moveMenuSelection(1);
+            } else {
+                nextTab();
+            }
             break;
     }
+}
+
+void NavigationController::buildMenuOverlay() {
+    // Full-screen translucent background on lv_layer_top() - same layer
+    // PopupOverlay uses, so an inbound alert popup still wins visually if
+    // it happens to arrive while the menu is open (isMenuVisible() is never
+    // true at the same time in practice - see onButtonPress()'s popup
+    // dismiss check above, which runs before the menu is ever touched).
+    _menuOverlay = lv_obj_create(lv_layer_top());
+    lv_obj_remove_style_all(_menuOverlay);
+    lv_obj_set_size(_menuOverlay, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(_menuOverlay, lv_color_white(), 0);
+    lv_obj_set_style_bg_opa(_menuOverlay, LV_OPA_COVER, 0);
+    lv_obj_add_flag(_menuOverlay, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(_menuOverlay, menuBackgroundTappedCb, LV_EVENT_CLICKED, this);
+
+    lv_obj_t* title = lv_label_create(_menuOverlay);
+    lv_label_set_text(title, "Menu");
+    lv_obj_set_style_text_font(title, &lv_font_montserrat_18_bpp8, 0);
+    lv_obj_set_style_text_color(title, lv_color_black(), 0);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 6);
+
+    _menuGrid = lv_obj_create(_menuOverlay);
+    lv_obj_remove_style_all(_menuGrid);
+    lv_obj_set_size(_menuGrid, LV_PCT(100), LV_PCT(85));
+    lv_obj_align(_menuGrid, LV_ALIGN_BOTTOM_MID, 0, -4);
+    lv_obj_set_flex_flow(_menuGrid, LV_FLEX_FLOW_ROW_WRAP);
+    lv_obj_set_flex_align(_menuGrid, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_row(_menuGrid, 6, 0);
+    lv_obj_set_style_pad_column(_menuGrid, 6, 0);
+    // Tiles are direct children handling their own LV_EVENT_CLICKED (see
+    // menuTileTappedCb) - since that event doesn't bubble by default, taps
+    // on a tile never also fire _menuOverlay's own background-tap handler.
+    lv_obj_add_flag(_menuGrid, LV_OBJ_FLAG_CLICKABLE);
+
+    lv_obj_add_flag(_menuOverlay, LV_OBJ_FLAG_HIDDEN);
+}
+
+void NavigationController::setMenuEntries(std::vector<MenuEntry> entries) {
+    _menuEntries = std::move(entries);
+    _menuTiles.clear();
+    lv_obj_clean(_menuGrid);
+
+    // _menuTiles is fully rebuilt (not resized incrementally) below and
+    // never touched again until the next setMenuEntries() call, so its
+    // element addresses stay stable for event user_data - same pattern as
+    // SceneSelectorView's _slots.
+    _menuTiles.resize(_menuEntries.size());
+    for (size_t i = 0; i < _menuEntries.size(); i++) {
+        const MenuEntry& entry = _menuEntries[i];
+
+        lv_obj_t* tile = lv_button_create(_menuGrid);
+        lv_obj_set_size(tile, kMenuTileWidth, kMenuTileHeight);
+        lv_obj_set_flex_flow(tile, LV_FLEX_FLOW_COLUMN);
+        lv_obj_set_flex_align(tile, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        lv_obj_set_style_bg_color(tile, lv_color_hex(0xF2F2F2), 0);
+        lv_obj_set_style_border_color(tile, lv_color_hex(0xC0C0C0), 0);
+        lv_obj_set_style_border_width(tile, 1, 0);
+        // Highlight the virtual-button-selected tile with a solid blue
+        // border/background instead of the theme's low-contrast default
+        // checked style - same rationale as addTab()'s tab-button override
+        // above.
+        lv_obj_set_style_border_color(tile, lv_palette_main(LV_PALETTE_BLUE), LV_STATE_CHECKED);
+        lv_obj_set_style_border_width(tile, 3, LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(tile, lv_palette_lighten(LV_PALETTE_BLUE, 4), LV_STATE_CHECKED);
+
+        const lv_image_dsc_t* icon = iconForClassFullName(entry.classFullName);
+        if (icon) {
+            lv_obj_t* image = lv_image_create(tile);
+            lv_image_set_src(image, icon);
+        }
+
+        lv_obj_t* label = lv_label_create(tile);
+        lv_label_set_text(label, entry.name.c_str());
+        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_DOTS);
+        lv_obj_set_width(label, kMenuTileWidth - 8);
+        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_style_text_color(label, lv_color_black(), 0);
+
+        _menuTiles[i].self = this;
+        _menuTiles[i].tabIndex = entry.tabIndex;
+        _menuTiles[i].tile = tile;
+        lv_obj_add_event_cb(tile, menuTileTappedCb, LV_EVENT_CLICKED, &_menuTiles[i]);
+    }
+
+    _menuSelectedIndex = -1;
+}
+
+void NavigationController::showMenu() {
+    if (_menuEntries.empty()) {
+        return;
+    }
+    Serial.println("[Nav] showMenu");
+
+    uint32_t activeTab = lv_tabview_get_tab_count(_tabview) ? lv_tabview_get_tab_active(_tabview) : 0;
+    _menuSelectedIndex = 0;
+    for (size_t i = 0; i < _menuEntries.size(); i++) {
+        if (_menuEntries[i].tabIndex == activeTab) {
+            _menuSelectedIndex = static_cast<int>(i);
+            break;
+        }
+    }
+    updateMenuHighlight();
+
+    lv_obj_remove_flag(_menuOverlay, LV_OBJ_FLAG_HIDDEN);
+}
+
+void NavigationController::hideMenu() {
+    lv_obj_add_flag(_menuOverlay, LV_OBJ_FLAG_HIDDEN);
+}
+
+bool NavigationController::isMenuVisible() const {
+    return _menuOverlay && !lv_obj_has_flag(_menuOverlay, LV_OBJ_FLAG_HIDDEN);
+}
+
+void NavigationController::moveMenuSelection(int delta) {
+    if (_menuEntries.empty()) {
+        return;
+    }
+    int count = static_cast<int>(_menuEntries.size());
+    _menuSelectedIndex = ((_menuSelectedIndex + delta) % count + count) % count;
+    updateMenuHighlight();
+}
+
+void NavigationController::confirmMenuSelection() {
+    if (_menuSelectedIndex < 0 || _menuSelectedIndex >= static_cast<int>(_menuEntries.size())) {
+        hideMenu();
+        return;
+    }
+    goToTab(_menuEntries[_menuSelectedIndex].tabIndex);
+    hideMenu();
+}
+
+void NavigationController::updateMenuHighlight() {
+    for (size_t i = 0; i < _menuTiles.size(); i++) {
+        if (static_cast<int>(i) == _menuSelectedIndex) {
+            lv_obj_add_state(_menuTiles[i].tile, LV_STATE_CHECKED);
+        } else {
+            lv_obj_remove_state(_menuTiles[i].tile, LV_STATE_CHECKED);
+        }
+    }
+}
+
+void NavigationController::menuBackgroundTappedCb(lv_event_t* event) {
+    auto* self = static_cast<NavigationController*>(lv_event_get_user_data(event));
+    self->hideMenu();
+}
+
+void NavigationController::menuTileTappedCb(lv_event_t* event) {
+    auto* menuTile = static_cast<MenuTile*>(lv_event_get_user_data(event));
+    menuTile->self->goToTab(menuTile->tabIndex);
+    menuTile->self->hideMenu();
 }
