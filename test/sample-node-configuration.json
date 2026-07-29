@@ -1,0 +1,177 @@
+{
+  "name": "M5Core2 Test Node",
+  "id": "6E6C6B9B-6F0A-4E9D-9C1B-2A6B8C0F1E3D",
+  "deviceConfigurations": [
+    {
+      "id": "view-clock",
+      "name": "Clock",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.ClockView",
+      "deviceParameters": { "timezone": "EET-2EEST,M3.5.0/3,M10.5.0/4" }
+    },
+    {
+      "id": "view-buttons",
+      "name": "Living Room Lights",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.ButtonView",
+      "commandTemplates": [
+        { "id": "btn-livingroom-cmd", "type": 0, "name": "Living Room", "address": "btn-1", "model": false },
+        { "id": "btn-kitchen-cmd", "type": 0, "name": "Kitchen", "address": "btn-2", "model": false },
+        { "id": "btn-bedroom-cmd", "type": 0, "name": "Bedroom", "address": "btn-3", "model": false }
+      ],
+      "reportTemplates": [
+        { "id": "btn-livingroom-report", "type": 0, "name": "Living Room", "address": "btn-1", "parameters": { "icon": "bulb" } },
+        { "id": "btn-kitchen-report", "type": 0, "name": "Kitchen", "address": "btn-2", "parameters": { "icon": "bulb" } },
+        { "id": "btn-bedroom-report", "type": 0, "name": "Bedroom", "address": "btn-3", "parameters": { "icon": "bulb" } }
+      ],
+      "deviceParameters": { "header": "Lights", "subHeader": "tap a room to toggle" }
+    },
+    {
+      "id": "view-toggle",
+      "name": "Porch Relay",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.ToggleView",
+      "commandTemplates": [
+        { "id": "porch-relay-cmd", "type": 0, "name": "Porch Relay", "address": "relay-1", "model": false }
+      ],
+      "reportTemplates": [
+        { "id": "porch-relay-report", "type": 0, "name": "Porch Relay", "address": "relay-1", "parameters": {} }
+      ]
+    },
+    {
+      "id": "view-slider",
+      "name": "Fan Speed",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.SliderView",
+      "commandTemplates": [
+        { "id": "fan-speed-cmd", "type": 2, "name": "Fan Speed", "address": "fan-1", "model": 0 }
+      ],
+      "reportTemplates": [
+        { "id": "fan-speed-report", "type": 2, "name": "Fan Speed", "address": "fan-1", "parameters": {} }
+      ],
+      "deviceParameters": { "min": "0", "max": "10", "step": "1", "unit": "" }
+    },
+    {
+      "id": "view-percentage",
+      "name": "Bedroom Dimmer",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.PercentageView",
+      "commandTemplates": [
+        { "id": "dimmer-cmd", "type": 2, "name": "Bedroom Dimmer", "address": "dimmer-1", "model": 0 }
+      ],
+      "reportTemplates": [
+        { "id": "dimmer-report", "type": 2, "name": "Bedroom Dimmer", "address": "dimmer-1", "parameters": {} }
+      ]
+    },
+    {
+      "id": "view-colorscheme",
+      "name": "Office Lamp Color",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.ColorSchemeView",
+      "commandTemplates": [
+        { "id": "lamp-color-cmd", "type": 1, "name": "Office Lamp Color", "address": "lamp-1", "model": "#000000" }
+      ],
+      "reportTemplates": [
+        { "id": "lamp-color-report", "type": 1, "name": "Office Lamp Color", "address": "lamp-1", "parameters": {} }
+      ]
+    },
+    {
+      "id": "view-values",
+      "name": "Weather Station",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.ValueView",
+      "commandTemplates": [
+        { "id": "temperature-cmd", "type": 2, "name": "Temperature", "address": "temp-1", "model": "21" },
+        { "id": "humidity-cmd", "type": 2, "name": "Humidity", "address": "humidity-1", "model": "99" }
+      ],
+      "deviceParameters": { "unit1": "C", "unit2": "%" }
+    },
+    {
+      "id": "view-energygauge",
+      "name": "Whole-Home Power",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.EnergyGaugeView",
+      "commandTemplates": [
+        { "id": "power-reading-cmd", "type": 2, "name": "Whole-Home Power", "address": "power-1", "model": 0 }
+      ],
+      "deviceParameters": { "unit": "W", "min": "0", "max": "3000" }
+    },
+    {
+      "id": "view-scenes",
+      "name": "Scenes",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.SceneSelectorView",
+      "reportTemplates": [
+        { "id": "scene-movie-night", "type": 1, "name": "Movie Night", "address": "", "parameters": {} },
+        { "id": "scene-dinner", "type": 1, "name": "Dinner", "address": "", "parameters": {} },
+        { "id": "scene-good-morning", "type": 1, "name": "Good Morning", "address": "", "parameters": {} },
+        { "id": "scene-good-night", "type": 1, "name": "Good Night", "address": "", "parameters": {} }
+      ]
+    },
+    {
+      "id": "view-alert",
+      "name": "Doorbell Alert",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.AlertView",
+      "commandTemplates": [
+        { "id": "doorbell-alert-cmd", "type": 3, "name": "Doorbell Alert", "address": "doorbell-1", "model": { "title": "Doorbell", "message": "Someone is at the front door", "subHeader": "tap to acknowledge", "soundEnabled": true } }
+      ]
+    },
+    {
+      "id": "view-notification",
+      "name": "Status Notice",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.NotificationView",
+      "commandTemplates": [
+        { "id": "status-notice-cmd", "type": 3, "name": "Status Notice", "address": "notice-1", "model": { "title": "Washing machine", "message": "Cycle complete", "subHeader": "read on-device, auto-dismisses", "soundEnabled": true } }
+      ],
+      "deviceParameters": { "durationMs": "5000" }
+    },
+    {
+      "id": "view-timer",
+      "name": "Kitchen Timer",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.TimerView",
+      "commandTemplates": [
+        { "id": "kitchen-timer-cmd", "type": 2, "name": "Kitchen Timer", "address": "timer-1", "valueType": 0, "model": false }
+      ],
+      "reportTemplates": [
+        { "id": "kitchen-timer-report", "type": 2, "name": "Kitchen Timer", "address": "timer-1", "parameters": {} }
+      ],
+      "deviceParameters": { "defaultMinutes": "10", "stepMinutes": "1", "maxMinutes": "60" }
+    },
+    {
+      "id": "view-ble",
+      "name": "Nearby Bluetooth",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.BLEView",
+      "reportTemplates": [
+        {
+          "id": "ble-device-found-report",
+          "type": 1,
+          "name": "BLE Device Found",
+          "address": "deviceFound",
+          "parameters": { "allowedAddresses": "78:ed:bc:09:5b:0b" }
+        },
+        {
+          "id": "ble-device-lost-report",
+          "type": 1,
+          "name": "BLE Device Lost",
+          "address": "deviceLost",
+          "parameters": { "allowedAddresses": "78:ed:bc:09:5b:0b" }
+        },
+        {
+          "id": "ble-advertisement-report",
+          "type": 1,
+          "name": "BLE Advertisement",
+          "address": "advertisement",
+          "parameters": { "allowedAddresses": "da:94:0a:57:bc:57" }
+        }
+      ],
+      "deviceParameters": { "header": "Nearby BLE" }
+    },
+    {
+      "id": "grove-a-rfid-reader",
+      "name": "Access Card Reader (RFID2 Grove)",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.Rfid2Peripheral",
+      "reportTemplates": [
+        { "id": "access-card-report", "type": 1, "name": "Access Card Reader", "address": "", "parameters": {} }
+      ]
+    },
+    {
+      "id": "grove-b-porch-relay-output",
+      "name": "Porch Relay (Grove)",
+      "classFullName": "RIoT2.Ard.M5Core2.Node.GpioPeripheral",
+      "commandTemplates": [
+        { "id": "porch-relay-grove-cmd", "type": 0, "name": "Porch Relay", "address": "B2", "model": false }
+      ]
+    }
+  ]
+}

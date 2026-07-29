@@ -199,6 +199,19 @@ void handleConfigurationUpdated(const NodeConfiguration& nodeConfiguration) {
     peripheralManager.rebuild(nodeConfiguration,
                                [](const String& classFullName) { return ViewFactory::instance().isRegistered(classFullName); });
 
+    // Must happen BEFORE BleScanner::instance().begin() below (and before
+    // any (re)connect WifiConnection::loop() might do concurrently): ESP32's
+    // WiFi/BT coexistence layer hard-aborts (crash/reboot, not just a failed
+    // connection) if WiFi modem sleep is disabled while a BLE radio is
+    // active - see WifiConnection::setModemSleepEnabled()'s doc comment. A
+    // cached NodeConfiguration containing a BLEView means this rebuild (and
+    // thus BLE startup below) can happen as early as loadCached() in
+    // setup(), before wifi.begin() has even run once - so this can't be a
+    // one-time setup() decision, it must be re-derived on every rebuild.
+    if (viewManager.hasBleConsumer()) {
+        wifi.setModemSleepEnabled(true);
+    }
+
     // BLEView's presence is the only thing that decides whether the BLE
     // radio should be running at all - see BleScanner.h's rationale for why
     // it's not enabled unconditionally at boot.

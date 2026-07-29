@@ -34,6 +34,20 @@ lv_obj_t* NavigationController::addTab(const String& title) {
         // bpp8 Montserrat font (already used by QrSettingsView) doesn't
         // have that defect, so it's used here for the tab bar labels too.
         lv_obj_set_style_text_font(tabButton, &lv_font_montserrat_18_bpp8, LV_PART_MAIN);
+
+        // lv_tabview_add_tab() gives every tab button flex_grow=1, which
+        // evenly divides the tab bar's fixed width across however many tabs
+        // exist - fine for 3-4 tabs, but a NodeConfiguration with 10+ views
+        // (all sharing one bottom tab bar) squishes every label down to an
+        // unreadable sliver ("menu is a mess"). Give each button its
+        // natural (label + padding) width instead and let the tab bar
+        // scroll horizontally once tabs overflow it - it's already a
+        // scrollable flex-row container (lv_tabview_set_tab_bar_position()),
+        // this just stops forcing every button to shrink to fit.
+        lv_obj_set_flex_grow(tabButton, 0);
+        lv_obj_set_width(tabButton, LV_SIZE_CONTENT);
+        lv_obj_set_style_pad_left(tabButton, 14, LV_PART_MAIN);
+        lv_obj_set_style_pad_right(tabButton, 14, LV_PART_MAIN);
     }
 
     return content;
