@@ -85,6 +85,20 @@ private:
     void confirmMenuSelection();
     void updateMenuHighlight();
 
+    // Scrolls the tab bar (independent from lv_tabview_set_active()'s own
+    // scrolling of the *content* area) so the currently-active tab button is
+    // centered in the bar - lv_tabview_set_active() only updates each
+    // button's LV_STATE_CHECKED, it never scrolls the (horizontally
+    // scrollable, see addTab()) tab bar itself, so without this the active
+    // tab's highlight can end up scrolled off-screen after swipe/button
+    // navigation. Called after every lv_tabview_set_active() call below,
+    // plus on the tabview's LV_EVENT_VALUE_CHANGED (fired by lv_tabview's
+    // own swipe-gesture handling, see cont_scroll_end_event_cb in
+    // lv_tabview.c) so a direct swipe on the content area also re-centers
+    // it.
+    void centerActiveTabButton();
+
     static void menuBackgroundTappedCb(lv_event_t* event);
     static void menuTileTappedCb(lv_event_t* event);
+    static void tabviewValueChangedCb(lv_event_t* event);
 };

@@ -7,6 +7,23 @@ namespace {
 constexpr lv_coord_t kMenuTileWidth = 88;
 constexpr lv_coord_t kMenuTileHeight = 96;
 
+// The bottom tab bar's own background - deliberately darker than every
+// view's (theme-default light) background so the bar reads as a distinct
+// navigation chrome element instead of blending into whichever view is
+// currently showing above it.
+const lv_color_t kTabBarBgColor = lv_color_hex(0x16181D);
+
+// Text color for non-active tab buttons - the tab bar's dark background
+// (see kTabBarBgColor) makes the theme's default dark-on-light button text
+// unreadable, so unchecked tabs get an explicit muted light gray instead.
+const lv_color_t kTabInactiveTextColor = lv_color_hex(0xA0A4AC);
+
+// Active-tab highlight color - deliberately a different hue than the blue
+// used elsewhere for interactive accents (e.g. ButtonView's kActiveColor,
+// the main menu's checked-tile highlight) so the bottom nav's "you are
+// here" indicator doesn't read as just another button.
+const lv_color_t kTabActiveColor = lv_color_hex(0x00BFA5);
+
 // Maps a DeviceConfiguration's classFullName (e.g.
 // "RIoT2.Ard.M5Core2.Node.ButtonView") to the icon asset (see Icons.h,
 // converted from RIoT2.Ard.M5Dial.Node/Assets/icons) that best represents
@@ -37,6 +54,26 @@ void NavigationController::begin() {
     lv_tabview_set_tab_bar_position(_tabview, LV_DIR_BOTTOM);
     lv_tabview_set_tab_bar_size(_tabview, 40);
 
+    // Give the tab bar itself a solid, distinctly darker background than
+    // any view's (theme-default light) content background - otherwise the
+    // bar's default theme bg is close enough to the active view's own bg
+    // that the two visually merge into one another (see kTabBarBgColor).
+    lv_obj_t* tabBar = lv_tabview_get_tab_bar(_tabview);
+    lv_obj_set_style_bg_color(tabBar, kTabBarBgColor, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(tabBar, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(tabBar, 0, LV_PART_MAIN);
+
+    // lv_tabview_set_active() (used by previousTab()/nextTab()/goToTab())
+    // only scrolls the *content* area and updates each button's checked
+    // state - it never scrolls the tab bar, so the active tab's highlight
+    // can end up off-screen after navigating. LV_EVENT_VALUE_CHANGED also
+    // fires on this object for swipe-driven tab changes (see
+    // cont_scroll_end_event_cb in lv_tabview.c), so hooking it here covers
+    // swipe navigation too - the button-driven paths call
+    // centerActiveTabButton() directly (see previousTab()/nextTab()/
+    // goToTab() below).
+    lv_obj_add_event_cb(_tabview, tabviewValueChangedCb, LV_EVENT_VALUE_CHANGED, this);
+
     // The menu overlay lives on lv_layer_top(), independent of _tabview, so
     // it must only ever be built once - begin() itself is re-run every time
     // clearTabs() recreates _tabview (see clearTabs() below).
@@ -62,9 +99,20 @@ lv_obj_t* NavigationController::addTab(const String& title) {
     lv_obj_t* tabBar = lv_tabview_get_tab_bar(_tabview);
     lv_obj_t* tabButton = lv_obj_get_child(tabBar, index);
     if (tabButton) {
+        // Non-active tabs: transparent (so the bar's own dark
+        // kTabBarBgColor shows through) with muted light text - the
+        // theme's default dark-on-light button text is unreadable against
+        // that dark bar otherwise.
+        lv_obj_set_style_bg_opa(tabButton, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_text_color(tabButton, kTabInactiveTextColor, LV_PART_MAIN);
+
+        // Active tab: solid, distinct accent color (kTabActiveColor) rather
+        // than the same blue used elsewhere for buttons/menu highlights, so
+        // the "current view" indicator doesn't read as just another
+        // button.
         lv_obj_set_style_bg_opa(tabButton, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);
-        lv_obj_set_style_bg_color(tabButton, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_CHECKED);
-        lv_obj_set_style_text_color(tabButton, lv_color_white(), LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(tabButton, kTabActiveColor, LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_text_color(tabButton, lv_color_black(), LV_PART_MAIN | LV_STATE_CHECKED);
 
         // The theme's default LV_FONT_MONTSERRAT_14 had a broken/missing
         // pixel in certain glyphs (e.g. the "u" in "Status"); this custom
@@ -87,6 +135,11 @@ lv_obj_t* NavigationController::addTab(const String& title) {
         lv_obj_set_style_pad_right(tabButton, 14, LV_PART_MAIN);
     }
 
+    // If this is the first tab added, it's implicitly the active one -
+    // make sure it starts centered rather than pinned at the bar's left
+    // edge (matters once there are enough tabs for the bar to scroll).
+    centerActiveTabButton();
+
     return content;
 }
 
@@ -106,6 +159,7 @@ void NavigationController::previousTab() {
     uint32_t target = (current == 0) ? (count - 1) : (current - 1);
     Serial.printf("[Nav] previousTab: %u -> %u (count=%u)\n", current, target, count);
     lv_tabview_set_active(_tabview, target, LV_ANIM_OFF);
+    centerActiveTabButton();
 }
 
 void NavigationController::nextTab() {
@@ -117,6 +171,7 @@ void NavigationController::nextTab() {
     uint32_t target = (current + 1) % count;
     Serial.printf("[Nav] nextTab: %u -> %u (count=%u)\n", current, target, count);
     lv_tabview_set_active(_tabview, target, LV_ANIM_OFF);
+    centerActiveTabButton();
 }
 
 void NavigationController::goToTab(uint32_t index) {
@@ -125,6 +180,7 @@ void NavigationController::goToTab(uint32_t index) {
     }
     Serial.printf("[Nav] goToTab: -> %u\n", index);
     lv_tabview_set_active(_tabview, index, LV_ANIM_OFF);
+    centerActiveTabButton();
 }
 
 void NavigationController::onButtonPress(Button button) {
@@ -298,6 +354,32 @@ void NavigationController::updateMenuHighlight() {
     }
 }
 
+void NavigationController::centerActiveTabButton() {
+    if (!_tabview) {
+        return;
+    }
+    uint32_t count = lv_tabview_get_tab_count(_tabview);
+    if (count == 0) {
+        return;
+    }
+
+    lv_obj_t* tabBar = lv_tabview_get_tab_bar(_tabview);
+    uint32_t active = lv_tabview_get_tab_active(_tabview);
+    lv_obj_t* button = lv_obj_get_child(tabBar, active);
+    if (!button) {
+        return;
+    }
+
+    // lv_obj_get_x() returns a button's position within the tab bar's
+    // *unscrolled* content (it already folds the current scroll offset
+    // back out - see lv_obj_get_x() in lv_obj_pos.c), so this is stable
+    // regardless of the bar's current scroll position.
+    lv_obj_update_layout(tabBar);
+    int32_t buttonCenter = lv_obj_get_x(button) + lv_obj_get_width(button) / 2;
+    int32_t barContentWidth = lv_obj_get_content_width(tabBar);
+    lv_obj_scroll_to_x(tabBar, buttonCenter - barContentWidth / 2, LV_ANIM_ON);
+}
+
 void NavigationController::menuBackgroundTappedCb(lv_event_t* event) {
     auto* self = static_cast<NavigationController*>(lv_event_get_user_data(event));
     self->hideMenu();
@@ -308,3 +390,9 @@ void NavigationController::menuTileTappedCb(lv_event_t* event) {
     menuTile->self->goToTab(menuTile->tabIndex);
     menuTile->self->hideMenu();
 }
+
+void NavigationController::tabviewValueChangedCb(lv_event_t* event) {
+    auto* self = static_cast<NavigationController*>(lv_event_get_user_data(event));
+    self->centerActiveTabButton();
+}
+
