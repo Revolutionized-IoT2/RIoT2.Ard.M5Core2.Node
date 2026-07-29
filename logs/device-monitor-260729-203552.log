@@ -1,0 +1,146 @@
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x17 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:1184
+load:0x40078000,len:13232
+load:0x40080400,len:3028
+entry 0x400805e4
+[Config] Loaded node id=083AF2681900 name=M5Core2 Node
+[Orchestrator] Loaded cached configuration from flash: 12 device configuration(s)
+[Orchestrator]   device id=view-clock name=Clock classFullName=RIoT2.Ard.M5Core2.Node.ClockView (0 commands, 0 reports)
+[Orchestrator]   device id=view-buttons name=Living Room Lights classFullName=RIoT2.Ard.M5Core2.Node.ButtonView (3 commands, 3 reports)
+[Orchestrator]   device id=view-toggle name=Porch Relay classFullName=RIoT2.Ard.M5Core2.Node.ToggleView (1 commands, 1 reports)
+[Orchestrator]   device id=view-slider name=Fan Speed classFullName=RIoT2.Ard.M5Core2.Node.SliderView (1 commands, 1 reports)
+[Orchestrator]   device id=view-percentage name=Bedroom Dimmer classFullName=RIoT2.Ard.M5Core2.Node.PercentageView (1 commands, 1 reports)
+[Orchestrator]   device id=view-colorscheme name=Office Lamp Color classFullName=RIoT2.Ard.M5Core2.Node.ColorSchemeView (1 commands, 1 reports)
+[Orchestrator]   device id=view-values name=Weather Station classFullName=RIoT2.Ard.M5Core2.Node.ValueView (2 commands, 0 reports)
+[Orchestrator]   device id=view-energygauge name=Whole-Home Power classFullName=RIoT2.Ard.M5Core2.Node.EnergyGaugeView (1 commands, 0 reports)
+[Orchestrator]   device id=view-scenes name=Scenes classFullName=RIoT2.Ard.M5Core2.Node.SceneSelectorView (0 commands, 4 reports)
+[Orchestrator]   device id=view-alert name=Doorbell Alert classFullName=RIoT2.Ard.M5Core2.Node.AlertView (1 commands, 0 reports)
+[Orchestrator]   device id=view-notification name=Status Notice classFullName=RIoT2.Ard.M5Core2.Node.NotificationView (1 commands, 0 reports)
+[Orchestrator]   device id=view-timer name=Kitchen Timer classFullName=RIoT2.Ard.M5Core2.Node.TimerView (1 commands, 1 reports)
+[ViewManager] Rebuilt with 12 view(s)
+[PeripheralManager] Rebuilt 0 peripheral(s)
+[Flush] #1 area=(0,0)-(319,239) 320x240
+[WiFi] Connecting to "s-net"...
+[Watchdog] step=M5.update loopIterations=36130 (+36130) freeHeap=69768 minFreeHeap=68900
+[WiFi] Connected, IP=192.168.0.100
+[MQTT] Connecting to broker as "083AF2681900" (tls=0)...
+[MQTT] Connected
+[TEMP] Forcing navigationController.nextTab()
+[Nav] nextTab: 0 -> 1 (count=10)
+[Orchestrator] Fetching configuration from http://192.168.0.126:7104/api/Nodes/083AF2681900/configuration
+[Watchdog] step=orchestratorClient.requestConfiguration loopIterations=48177 (+12037) freeHeap=67828 minFreeHeap=64588
+[Orchestrator] Fetched configuration is unchanged, skipping rebuild
+[Watchdog] step=M5.update loopIterations=61188 (+13011) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=idle loopIterations=75941 (+14751) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=90697 (+14754) freeHeap=70936 minFreeHeap=59572
+[Input] touchCount 0 -> 1
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=160 y=218 isPressed=0 isHolding=0
+[Input] BtnB.wasClicked
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Input] touch x=160 y=218 isPressed=0 isHolding=0
+[Input] touchCount 1 -> 0
+[Input] touchCount 0 -> 1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=0 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touch x=276 y=279 isPressed=0 isHolding=0
+[Input] btn A=0 B=0 C=1
+[Input] touchCount 1 -> 0
+[Input] BtnC.wasClicked
+[Nav] onButtonPress: 2
+[Nav] nextTab: 0 -> 1 (count=10)
+[Watchdog] step=mqtt.loop loopIterations=104202 (+13503) freeHeap=70936 minFreeHeap=59572
+[Input] touchCount 0 -> 1
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=181 y=279 isPressed=0 isHolding=0
+[Input] BtnB.wasClicked
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Input] touch x=181 y=279 isPressed=0 isHolding=0
+[Input] touchCount 1 -> 0
+[Watchdog] step=mqtt.loop loopIterations=118328 (+14124) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=133083 (+14753) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=147823 (+14738) freeHeap=70904 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=162586 (+14761) freeHeap=70904 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=177353 (+14765) freeHeap=70904 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=192114 (+14759) freeHeap=70904 minFreeHeap=59572
+[Watchdog] step=M5.update loopIterations=206861 (+14745) freeHeap=70904 minFreeHeap=59572
+[Watchdog] step=M5.update loopIterations=221620 (+14757) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=236375 (+14753) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=251131 (+14754) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=265884 (+14751) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=280637 (+14751) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=295391 (+14752) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=310156 (+14763) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=324926 (+14768) freeHeap=70936 minFreeHeap=59572
+[ScreenPower] Active -> Idle
+[Watchdog] step=mqtt.loop loopIterations=339662 (+14734) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=buttons loopIterations=354382 (+14718) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=369109 (+14725) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=buttons loopIterations=383842 (+14731) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=398577 (+14733) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=idle loopIterations=413307 (+14728) freeHeap=70936 minFreeHeap=59572
+[Watchdog] step=mqtt.loop loopIterations=428038 (+14728) freeHeap=70936 minFreeHeap=59572

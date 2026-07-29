@@ -29,7 +29,14 @@
 // Arduino loop() iteration instead.
 #define LV_USE_OS LV_OS_NONE
 
-// Arduino's millis() as LVGL's tick source, instead of a periodic ISR.
+// Arduino's millis() as LVGL's tick source. NOTE: LVGL 9.x no longer reads
+// LV_TICK_CUSTOM/LV_TICK_CUSTOM_INCLUDE/LV_TICK_CUSTOM_SYS_TIME_EXPR at all
+// (that was the v8 mechanism) - lv_tick.c ignores them completely. The
+// actual tick source must be registered at runtime via lv_tick_set_cb(),
+// which is done in LvglDisplay::begin(). These defines are kept only so a
+// future downgrade to LVGL v8 (or anyone skimming this file expecting the
+// old mechanism) isn't misled into thinking no tick source is configured;
+// they have no effect in LVGL 9.x.
 #define LV_TICK_CUSTOM 1
 #if LV_TICK_CUSTOM
 #define LV_TICK_CUSTOM_INCLUDE "Arduino.h"

@@ -247,6 +247,19 @@ void setup() {
 
     auto cfg = M5.config();
     M5.begin(cfg);
+
+    // M5Unified's virtual BtnA/B/C touch zones (bottom edge of the screen)
+    // are OFF by default (_touch_button_height == 0), which reserves a
+    // zero-height strip starting exactly at the bottom edge of the
+    // screen (y >= 240 on Core2's 240px-tall panel) - i.e. a strip that no
+    // touch coordinate can ever fall inside. Without this call, BtnA/B/C
+    // NEVER register a press no matter where on screen you tap - only
+    // lv_tabview's native swipe gesture works for navigation. This was the
+    // root cause of "buttons do not react" reports. 40px carves out
+    // y=200-239 as the virtual button strip (BtnA/B/C = left/mid/right
+    // thirds of that strip's width).
+    M5.setTouchButtonHeight(40);
+
     Buzzer::begin();
 
     // M5.Display.width()/height() (read inside LvglDisplay::begin()) are

@@ -67,7 +67,8 @@ void NavigationController::previousTab() {
     }
     uint32_t current = lv_tabview_get_tab_active(_tabview);
     uint32_t target = (current == 0) ? (count - 1) : (current - 1);
-    lv_tabview_set_active(_tabview, target, LV_ANIM_ON);
+    Serial.printf("[Nav] previousTab: %u -> %u (count=%u)\n", current, target, count);
+    lv_tabview_set_active(_tabview, target, LV_ANIM_OFF);
 }
 
 void NavigationController::nextTab() {
@@ -77,17 +78,20 @@ void NavigationController::nextTab() {
     }
     uint32_t current = lv_tabview_get_tab_active(_tabview);
     uint32_t target = (current + 1) % count;
-    lv_tabview_set_active(_tabview, target, LV_ANIM_ON);
+    Serial.printf("[Nav] nextTab: %u -> %u (count=%u)\n", current, target, count);
+    lv_tabview_set_active(_tabview, target, LV_ANIM_OFF);
 }
 
 void NavigationController::goToTab(uint32_t index) {
     if (index >= lv_tabview_get_tab_count(_tabview)) {
         return;
     }
-    lv_tabview_set_active(_tabview, index, LV_ANIM_ON);
+    Serial.printf("[Nav] goToTab: -> %u\n", index);
+    lv_tabview_set_active(_tabview, index, LV_ANIM_OFF);
 }
 
 void NavigationController::onButtonPress(Button button) {
+    Serial.printf("[Nav] onButtonPress: %d\n", static_cast<int>(button));
     switch (button) {
         case Button::A:
             previousTab();

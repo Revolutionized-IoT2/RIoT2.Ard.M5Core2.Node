@@ -3,8 +3,26 @@
 #include <M5Unified.h>
 #include <esp_heap_caps.h>
 
+namespace {
+// LVGL 9.x no longer honors the old v8-style LV_TICK_CUSTOM /
+// LV_TICK_CUSTOM_INCLUDE / LV_TICK_CUSTOM_SYS_TIME_EXPR macros in lv_conf.h
+// (lv_tick.c has no reference to them at all in 9.x) - lv_tick_get() now
+// always returns 0 unless a callback is registered at runtime via
+// lv_tick_set_cb(), or lv_tick_inc() is called manually. Without this,
+// LVGL's internal tick is permanently frozen at 0, so every period-based
+// lv_timer (including the display's own refresh timer) computes an elapsed
+// time of 0 forever and never re-fires after its very first execution -
+// the display renders exactly one frame at boot and then appears "frozen"
+// even though loop()/lv_timer_handler() keep running normally and touch
+// input keeps working (see /memories/repo/lvgl-refresh-stops-after-first-frame.md).
+uint32_t lvglTickGetCb() {
+    return millis();
+}
+}  // namespace
+
 void LvglDisplay::begin() {
     lv_init();
+    lv_tick_set_cb(lvglTickGetCb);
 
     const int32_t width = M5.Display.width();
     const int32_t height = M5.Display.height();

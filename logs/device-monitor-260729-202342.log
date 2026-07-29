@@ -1,0 +1,139 @@
+[Watchdog] step=mqtt.loop loopIterations=5069529 (+14118) freeHeap=41812 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5083618 (+14086) freeHeap=41616 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5097730 (+14110) freeHeap=41616 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5111831 (+14099) freeHeap=41616 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5125939 (+14105) freeHeap=41664 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5140102 (+14160) freeHeap=41664 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5154321 (+14217) freeHeap=41664 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5168485 (+14161) freeHeap=41664 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5182620 (+14132) freeHeap=41664 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5196760 (+14137) freeHeap=41568 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5210863 (+14100) freeHeap=41568 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5224973 (+14107) freeHeap=41476 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5239076 (+14101) freeHeap=41476 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5253226 (+14147) freeHeap=41476 minFreeHeap=7336
+[ScreenPower] Active -> Idle
+[Watchdog] step=BleScanner.loop loopIterations=5267268 (+14039) freeHeap=42008 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5281411 (+14140) freeHeap=41912 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5295576 (+14163) freeHeap=41960 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5309727 (+14149) freeHeap=41812 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5323807 (+14077) freeHeap=41812 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5337919 (+14110) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5352042 (+14121) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=BleScanner.loop loopIterations=5366155 (+14111) freeHeap=41792 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5380285 (+14127) freeHeap=41792 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5394414 (+14126) freeHeap=41792 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5408536 (+14120) freeHeap=41840 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5422648 (+14110) freeHeap=41840 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5436843 (+14192) freeHeap=41744 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5451063 (+14217) freeHeap=41668 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5465264 (+14199) freeHeap=41472 minFreeHeap=7336
+[Watchdog] step=screenPowerPolicy.loop loopIterations=5479368 (+14101) freeHeap=42536 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5493521 (+14150) freeHeap=42176 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5507667 (+14144) freeHeap=42136 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5521809 (+14140) freeHeap=42040 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5535948 (+14137) freeHeap=42040 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5550071 (+14120) freeHeap=41900 minFreeHeap=7336
+[Watchdog] step=screenPowerPolicy.loop loopIterations=5564217 (+14143) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=BleScanner.loop loopIterations=5578416 (+14196) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5592668 (+14249) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5606865 (+14194) freeHeap=41872 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5620996 (+14128) freeHeap=41780 minFreeHeap=7336
+[Input] touchCount 0 -> 1
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[ScreenPower] -> Active (wake)
+[Input] wokeFromIdle=true, button dispatch skipped this frame
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=0 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=184 y=210 isPressed=0 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touchCount 1 -> 0
+[Input] BtnB.wasClicked
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Input] touchCount 0 -> 1
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=216 isPressed=0 isHolding=0
+[Input] BtnB.wasClicked
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Input] touch x=194 y=216 isPressed=0 isHolding=0
+[Input] touchCount 1 -> 0
+[Watchdog] step=mqtt.loop loopIterations=5633721 (+12722) freeHeap=41680 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5647871 (+14147) freeHeap=41708 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5662035 (+14161) freeHeap=41708 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5676226 (+14188) freeHeap=41708 minFreeHeap=7336
+[Watchdog] step=BleScanner.loop loopIterations=5690328 (+14099) freeHeap=42256 minFreeHeap=7336
+[Watchdog] step=screenPowerPolicy.loop loopIterations=5704529 (+14198) freeHeap=42460 minFreeHeap=7336
+[Watchdog] step=M5.update loopIterations=5718719 (+14186) freeHeap=42588 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5732902 (+14180) freeHeap=42488 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5747178 (+14273) freeHeap=42392 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5761402 (+14221) freeHeap=42332 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5775574 (+14170) freeHeap=42332 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5789753 (+14176) freeHeap=42192 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5803916 (+14159) freeHeap=42192 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5818072 (+14153) freeHeap=42192 minFreeHeap=7336
+[Watchdog] step=factoryResetCombo loopIterations=5832220 (+14145) freeHeap=42044 minFreeHeap=7336
+[ScreenPower] Active -> Idle
+[Watchdog] step=mqtt.loop loopIterations=5846315 (+14092) freeHeap=42044 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5860448 (+14130) freeHeap=41952 minFreeHeap=7336
+[Watchdog] step=idle loopIterations=5874569 (+14118) freeHeap=41876 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5888767 (+14195) freeHeap=41680 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5902952 (+14182) freeHeap=42924 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5917071 (+14116) freeHeap=42560 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5931150 (+14076) freeHeap=42332 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5945230 (+14077) freeHeap=42208 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5959326 (+14093) freeHeap=42208 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=5973438 (+14109) freeHeap=42112 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=5987551 (+14110) freeHeap=42112 minFreeHeap=7336
+[Watchdog] step=idle loopIterations=6001647 (+14093) freeHeap=41840 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=6015698 (+14047) freeHeap=41840 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=6029827 (+14126) freeHeap=41840 minFreeHeap=7336
+[Watchdog] step=lv_timer_handler loopIterations=6044000 (+14170) freeHeap=41744 minFreeHeap=7336
+[Watchdog] step=mqtt.loop loopIterations=6058157 (+14154) freeHeap=41744 minFreeHeap=7336

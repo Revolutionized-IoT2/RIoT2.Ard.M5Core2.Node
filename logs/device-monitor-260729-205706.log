@@ -1,0 +1,344 @@
+[Watchdog] step=mqtt.loop loopIterations=2405925 (+15192) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2421130 (+15202) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=buttons loopIterations=2436335 (+15202) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2450001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=buttons loopIterations=2451540 (+15202) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2466745 (+15202) freeHeap=71212 minFreeHeap=59904
+[Input] touchCount 0 -> 1
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[ScreenPower] -> Active (wake)
+[Input] wokeFromIdle=true, button dispatch skipped this frame
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=1 isHolding=0
+[Input] touch x=169 y=127 isPressed=0 isHolding=0
+[Input] touch x=169 y=127 isPressed=0 isHolding=0
+[Input] touchCount 1 -> 0
+[Input] touchCount 0 -> 1
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Watchdog] step=mqtt.loop loopIterations=2481578 (+14830) freeHeap=71212 minFreeHeap=59904
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=1 isHolding=0
+[Input] btn A=1 B=0 C=0
+[Input] touch x=35 y=204 isPressed=0 isHolding=0
+[Input] BtnA.wasClicked
+[Nav] onButtonPress: 0
+[Nav] previousTab: 1 -> 0 (count=10)
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Input] touch x=35 y=204 isPressed=0 isHolding=0
+[Input] touchCount 1 -> 0
+[Input] touchCount 0 -> 1
+[Input] touch x=194 y=279 isPressed=1 isHolding=0
+[Input] touch x=194 y=279 isPressed=1 isHolding=0
+[Input] touch x=194 y=279 isPressed=1 isHolding=0
+[Input] touch x=194 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=279 isPressed=1 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=279 isPressed=0 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touch x=194 y=279 isPressed=0 isHolding=0
+[Input] btn A=0 B=1 C=0
+[Input] touchCount 1 -> 0
+[Input] BtnB.wasClicked
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2494826 (+13247) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2500001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=M5.update loopIterations=2510294 (+15465) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=wifi.loop loopIterations=2525509 (+15213) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=idle loopIterations=2540714 (+15203) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2550001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=mqtt.loop loopIterations=2555896 (+15180) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2571095 (+15196) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2586294 (+15196) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2600001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=mqtt.loop loopIterations=2601489 (+15192) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2616688 (+15196) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=lv_timer_handler loopIterations=2631889 (+15198) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=lv_timer_handler loopIterations=2647085 (+15194) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2650001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=mqtt.loop loopIterations=2662291 (+15204) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=lv_timer_handler loopIterations=2677503 (+15209) freeHeap=71212 minFreeHeap=59904
+[Watchdog] step=mqtt.loop loopIterations=2692715 (+15210) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2700001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=mqtt.loop loopIterations=2707905 (+15187) freeHeap=71212 minFreeHeap=59904
+[ScreenPower] Active -> Idle
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2722681 (+14773) freeHeap=71020 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=M5.update loopIterations=2737541 (+14857) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg3] CALL#2750001 tick=0 already_running=0 lv_timer_run=1
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=lv_timer_handler loopIterations=2752396 (+14853) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2767253 (+14855) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=lv_timer_handler loopIterations=2782114 (+14858) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=idle loopIterations=2796974 (+14858) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2800001 tick=0 already_running=0 lv_timer_run=1
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=lv_timer_handler loopIterations=2811796 (+14819) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2826665 (+14867) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2841543 (+14876) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg3] CALL#2850001 tick=0 already_running=0 lv_timer_run=1
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2856400 (+14854) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2871258 (+14856) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2886116 (+14856) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg3] CALL#2900001 tick=0 already_running=0 lv_timer_run=1
+[Watchdog] step=M5.update loopIterations=2900970 (+14851) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=M5.update loopIterations=2915829 (+14857) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=mqtt.loop loopIterations=2930688 (+14857) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[Watchdog] step=idle loopIterations=2945546 (+14855) freeHeap=71212 minFreeHeap=59904
+[LVGLdbg3] CALL#2950001 tick=0 already_running=0 lv_timer_run=1
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] invalidate_area FULL-mode -> sending REFR_REQUEST
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0
+[LVGLdbg2] REFR_REQUEST recv, refr_timer=0x3ffc68dc paused=0

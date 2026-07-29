@@ -55,6 +55,7 @@ bool ScreenPowerPolicy::loop() {
 }
 
 void ScreenPowerPolicy::enterIdle() {
+    Serial.println("[ScreenPower] Active -> Idle");
     _state = State::Idle;
     M5.Display.setBrightness(kDimBrightness);
     _lastIdleClockRefreshMs = 0;  // force an immediate refresh below
@@ -62,12 +63,14 @@ void ScreenPowerPolicy::enterIdle() {
 }
 
 void ScreenPowerPolicy::enterAsleep() {
+    Serial.println("[ScreenPower] Idle -> Asleep");
     _state = State::Asleep;
     _popupOverlay.dismiss();
     M5.Display.sleep();
 }
 
 void ScreenPowerPolicy::wake() {
+    Serial.println("[ScreenPower] -> Active (wake)");
     if (_state == State::Asleep) {
         M5.Display.wakeup();
     }

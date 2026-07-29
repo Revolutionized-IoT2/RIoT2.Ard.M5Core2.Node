@@ -1,0 +1,43 @@
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Nav] onButtonPress: 2
+[Nav] nextTab: 1 -> 2 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 2 -> 3 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 3 -> 4 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 4 -> 5 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 5 -> 6 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 6 -> 7 (count=10)
+[Nav] onButtonPress: 0
+[Nav] previousTab: 7 -> 6 (count=10)
+[Nav] onButtonPress: 0
+[Nav] previousTab: 6 -> 5 (count=10)
+[Nav] onButtonPress: 1
+[Nav] goToTab: -> 0
+[Nav] onButtonPress: 2
+[Nav] nextTab: 0 -> 1 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 1 -> 2 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 2 -> 3 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 3 -> 4 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 4 -> 5 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 5 -> 6 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 6 -> 7 (count=10)
+[Nav] onButtonPress: 2
+[Nav] nextTab: 7 -> 8 (count=10)
+[Report] id=scene-good-morning value=true
+[Report] id=scene-good-morning value=true
+[Report] id=scene-movie-night value=true
