@@ -108,14 +108,12 @@ bool BLEView::isAddressAllowed(const std::vector<String>& allowedAddresses, cons
 }
 
 void BLEView::buildUi(lv_obj_t* parent) {
-    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_t* content = buildHeaderArea(parent, _header, String());
+    lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    lv_obj_t* headerLabel = lv_label_create(parent);
-    lv_label_set_text(headerLabel, _header.c_str());
-
-    _list = lv_list_create(parent);
-    lv_obj_set_size(_list, lv_pct(100), lv_pct(85));
+    _list = lv_list_create(content);
+    lv_obj_set_size(_list, lv_pct(100), lv_pct(100));
 
     refreshList();
 }

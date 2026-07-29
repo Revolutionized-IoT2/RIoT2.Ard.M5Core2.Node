@@ -37,16 +37,12 @@ void ButtonView::begin(const DeviceConfiguration& config) {
 }
 
 void ButtonView::buildUi(lv_obj_t* parent) {
-    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-
-    if (_header.length() > 0) {
-        lv_obj_t* headerLabel = lv_label_create(parent);
-        lv_label_set_text(headerLabel, _header.c_str());
-    }
+    lv_obj_t* content = buildHeaderArea(parent, _header, _subHeader);
+    lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     if (_slots.empty()) {
-        lv_obj_t* emptyLabel = lv_label_create(parent);
+        lv_obj_t* emptyLabel = lv_label_create(content);
         lv_label_set_text(emptyLabel, "No buttons");
         return;
     }
@@ -54,7 +50,7 @@ void ButtonView::buildUi(lv_obj_t* parent) {
     // _slots is never resized again after begin(), so these element
     // addresses stay stable for the lifetime of the view - safe to hand out
     // as event/timer user_data below.
-    lv_obj_t* grid = lv_obj_create(parent);
+    lv_obj_t* grid = lv_obj_create(content);
     lv_obj_set_width(grid, lv_pct(100));
     lv_obj_set_height(grid, LV_SIZE_CONTENT);
     lv_obj_set_style_bg_opa(grid, LV_OPA_TRANSP, 0);
@@ -74,12 +70,8 @@ void ButtonView::buildUi(lv_obj_t* parent) {
 
         slot.button = button;
     }
-
-    if (_subHeader.length() > 0) {
-        lv_obj_t* subHeaderLabel = lv_label_create(parent);
-        lv_label_set_text(subHeaderLabel, _subHeader.c_str());
-    }
 }
+
 
 void ButtonView::onCommand(const Command& command) {
     for (auto& slot : _slots) {
