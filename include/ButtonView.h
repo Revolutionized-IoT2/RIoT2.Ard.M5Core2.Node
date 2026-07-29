@@ -7,12 +7,14 @@
 
 #include "IView.h"
 
-// 1-4 momentary buttons laid out in a centered, wrapping row. Tapping a
-// button publishes a Report (id -> "true") for its reportTemplate; an
-// inbound Command addressed to the matching commandTemplate.id (correlated
-// by shared `address`, as in M5Dial.Node's ButtonView) sets that button's
-// highlighted/on-off visual state. The view's own header/subheader text
-// come from the "header"/"subHeader" deviceParameters.
+// 1-4 momentary buttons laid out as a single lv_buttonmatrix row (keeps
+// them evenly stacked left-to-right, unlike an lv_button flex-wrap layout).
+// Tapping a button publishes a Report (id -> "true") for its reportTemplate;
+// an inbound Command addressed to the matching commandTemplate.id
+// (correlated by shared `address`, as in M5Dial.Node's ButtonView) sets
+// that button's highlighted/on-off visual state. The view's own
+// header/subheader text come from the "header"/"subHeader"
+// deviceParameters.
 class ButtonView : public IView {
 public:
     void begin(const DeviceConfiguration& config) override;
@@ -25,7 +27,7 @@ private:
         CommandTemplate command;
         bool hasCommand = false;
         bool active = false;
-        lv_obj_t* button = nullptr;
+        uint32_t btnId = 0;  // index of this slot's button within _matrix
         // Back-pointer so the static event/timer callbacks (which only get a
         // Slot*, since that's what's registered as their user_data) can
         // still reach publishReport(), a protected IView member.
@@ -33,10 +35,13 @@ private:
     };
 
     std::vector<Slot> _slots;
+    std::vector<String> _buttonLabels;  // owns the text each _map entry points into
+    std::vector<const char*> _map;      // lv_buttonmatrix_set_map()'s map, "" terminated
+    lv_obj_t* _matrix = nullptr;
     String _header;
     String _subHeader;
 
-    static void applyVisualState(Slot& slot);
-    static void buttonTappedCb(lv_event_t* event);
+    void applyVisualState(uint32_t btnId, bool active);
+    static void matrixEventCb(lv_event_t* event);
     static void flashTimerCb(lv_timer_t* timer);
 };

@@ -7,11 +7,11 @@
 
 #include "IView.h"
 
-// Flex-wrap grid of tappable tiles, one per reportTemplate - tap = select
-// AND confirm in one gesture (M5Dial.Node's SceneSelectorView needed a
-// browse-then-tap-to-confirm two-step since it only had a rotary encoder;
-// a touchscreen tap is already unambiguous). Publishes Report{id, "true"}
-// for the tapped tile's reportTemplate.
+// lv_roller listing one row per reportTemplate - spinning to (and settling
+// on) a scene is itself the confirm gesture, publishing Report{id, "true"}
+// for the selected reportTemplate (M5Dial.Node's SceneSelectorView needed a
+// separate browse-then-confirm step since it only had a rotary encoder;
+// here the roller's own settle event is already unambiguous).
 class SceneSelectorView : public IView {
 public:
     void begin(const DeviceConfiguration& config) override;
@@ -20,10 +20,10 @@ public:
 private:
     struct Slot {
         ReportTemplate report;
-        SceneSelectorView* owner = nullptr;
     };
 
     std::vector<Slot> _slots;
+    lv_obj_t* _roller = nullptr;
 
-    static void tileTappedCb(lv_event_t* event);
+    static void rollerValueChangedCb(lv_event_t* event);
 };

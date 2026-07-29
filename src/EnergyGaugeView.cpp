@@ -5,7 +5,13 @@
 #include "ViewFactory.h"
 
 namespace {
-constexpr lv_coord_t kArcSize = 160;
+constexpr lv_coord_t kGaugeSize = 160;
+constexpr uint32_t kAngleRange = 270;
+constexpr int32_t kRotation = 135;  // 3-o'clock offset for the gauge's start tick
+// Negative needle length = "radius - |needle_length|" (see lv_scale_set_line_needle_value()),
+// so the needle scales with kGaugeSize instead of needing a hardcoded absolute length.
+constexpr int32_t kNeedleLength = -30;
+const lv_color_t kNeedleColor = lv_color_hex(0x2060C0);
 }  // namespace
 
 void EnergyGaugeView::begin(const DeviceConfiguration& config) {
@@ -22,15 +28,27 @@ void EnergyGaugeView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    _arc = lv_arc_create(parent);
-    lv_obj_set_size(_arc, kArcSize, kArcSize);
-    lv_arc_set_range(_arc, _min, _max);
-    lv_arc_set_value(_arc, _min);
-    // Read-only - this arc only ever moves in response to onCommand(), never
-    // dragged by the user (unlike PercentageView's near-identical arc).
-    lv_obj_remove_flag(_arc, LV_OBJ_FLAG_CLICKABLE);
+    _scale = lv_scale_create(parent);
+    lv_obj_set_size(_scale, kGaugeSize, kGaugeSize);
+    lv_scale_set_mode(_scale, LV_SCALE_MODE_ROUND_INNER);
+    lv_scale_set_range(_scale, _min, _max);
+    lv_scale_set_angle_range(_scale, kAngleRange);
+    lv_scale_set_rotation(_scale, kRotation);
+    lv_scale_set_total_tick_count(_scale, 11);
+    lv_scale_set_major_tick_every(_scale, 5);
+    lv_obj_set_style_length(_scale, 6, LV_PART_ITEMS);
+    lv_obj_set_style_length(_scale, 10, LV_PART_INDICATOR);
 
-    _valueLabel = lv_label_create(_arc);
+    _needle = lv_line_create(_scale);
+    lv_obj_set_style_line_color(_needle, kNeedleColor, LV_PART_MAIN);
+    lv_obj_set_style_line_width(_needle, 6, LV_PART_MAIN);
+    lv_obj_set_style_line_rounded(_needle, true, LV_PART_MAIN);
+    // Read-only - this gauge only ever moves in response to onCommand(),
+    // there's no user interaction on a scale/needle widget to guard against
+    // (unlike PercentageView's near-identical but draggable arc).
+    lv_scale_set_line_needle_value(_scale, _needle, kNeedleLength, _min);
+
+    _valueLabel = lv_label_create(_scale);
     lv_obj_center(_valueLabel);
     updateValueLabel(_min);
 }
@@ -49,8 +67,8 @@ void EnergyGaugeView::onCommand(const Command& command) {
     int32_t value = command.value.as<int32_t>();
     if (value < _min) value = _min;
     if (value > _max) value = _max;
-    if (_arc) {
-        lv_arc_set_value(_arc, value);
+    if (_scale && _needle) {
+        lv_scale_set_line_needle_value(_scale, _needle, kNeedleLength, value);
     }
     updateValueLabel(value);
 }

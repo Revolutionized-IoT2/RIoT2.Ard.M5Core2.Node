@@ -5,8 +5,7 @@
 #include "ViewFactory.h"
 
 namespace {
-constexpr lv_coord_t kTileWidth = 130;
-constexpr lv_coord_t kTileHeight = 70;
+constexpr uint8_t kVisibleRowCount = 4;
 }  // namespace
 
 void SceneSelectorView::begin(const DeviceConfiguration& config) {
@@ -14,13 +13,12 @@ void SceneSelectorView::begin(const DeviceConfiguration& config) {
     for (const auto& report : config.reportTemplates) {
         Slot slot;
         slot.report = report;
-        slot.owner = this;
         _slots.push_back(slot);
     }
 }
 
 void SceneSelectorView::buildUi(lv_obj_t* parent) {
-    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_ROW_WRAP);
+    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     if (_slots.empty()) {
@@ -29,23 +27,30 @@ void SceneSelectorView::buildUi(lv_obj_t* parent) {
         return;
     }
 
-    // _slots is never resized again after begin(), so these element
-    // addresses stay stable for the lifetime of the view - safe to hand out
-    // as event user_data below (mirrors ButtonView's pattern).
-    for (auto& slot : _slots) {
-        lv_obj_t* tile = lv_button_create(parent);
-        lv_obj_set_size(tile, kTileWidth, kTileHeight);
-        lv_obj_add_event_cb(tile, tileTappedCb, LV_EVENT_CLICKED, &slot);
-
-        lv_obj_t* label = lv_label_create(tile);
-        lv_label_set_text(label, slot.report.name.c_str());
-        lv_obj_center(label);
+    // lv_roller_set_options() copies into its internal label (see
+    // lv_roller.c), so this local `options` string doesn't need to outlive
+    // the call.
+    String options;
+    for (size_t i = 0; i < _slots.size(); ++i) {
+        if (i > 0) {
+            options += "\n";
+        }
+        options += _slots[i].report.name;
     }
+
+    _roller = lv_roller_create(parent);
+    lv_roller_set_options(_roller, options.c_str(), LV_ROLLER_MODE_NORMAL);
+    lv_roller_set_visible_row_count(_roller, kVisibleRowCount);
+    lv_obj_add_event_cb(_roller, rollerValueChangedCb, LV_EVENT_VALUE_CHANGED, this);
 }
 
-void SceneSelectorView::tileTappedCb(lv_event_t* event) {
-    auto* slot = static_cast<Slot*>(lv_event_get_user_data(event));
-    slot->owner->publishReport(Report{slot->report.id, "true"});
+void SceneSelectorView::rollerValueChangedCb(lv_event_t* event) {
+    auto* self = static_cast<SceneSelectorView*>(lv_event_get_user_data(event));
+    uint32_t selected = lv_roller_get_selected(self->_roller);
+    if (selected >= self->_slots.size()) {
+        return;
+    }
+    self->publishReport(Report{self->_slots[selected].report.id, "true"});
 }
 
 namespace {

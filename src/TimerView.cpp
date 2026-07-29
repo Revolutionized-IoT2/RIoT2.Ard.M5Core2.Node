@@ -11,6 +11,7 @@ constexpr uint32_t kTickMs = 1000;
 constexpr int kRingCount = 6;                  // number of beeps in the "egg timer ring" pattern
 constexpr uint32_t kRingIntervalMs = 260;       // spacing between those beeps
 constexpr lv_coord_t kArcSize = 160;
+constexpr lv_coord_t kSpinboxButtonSize = 40;
 }  // namespace
 
 TimerView::~TimerView() {
@@ -44,11 +45,6 @@ void TimerView::begin(const DeviceConfiguration& config) {
     }
     _beepOnComplete = findParameter(config.deviceParameters, "beepOnComplete", "false").equalsIgnoreCase("true");
 
-    _rollerValues.clear();
-    for (int m = _stepMinutes; m <= _maxMinutes; m += _stepMinutes) {
-        _rollerValues.push_back(m);
-    }
-
     _phase = Phase::Setting;
     _totalSeconds = 0;
 }
@@ -65,22 +61,29 @@ void TimerView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_flow(_settingContainer, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(_settingContainer, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    String options;
-    int selectedIndex = 0;
-    for (size_t i = 0; i < _rollerValues.size(); ++i) {
-        if (i > 0) {
-            options += "\n";
-        }
-        options += String(_rollerValues[i]) + " min";
-        if (_rollerValues[i] == _minutes) {
-            selectedIndex = static_cast<int>(i);
-        }
-    }
+    lv_obj_t* spinboxRow = lv_obj_create(_settingContainer);
+    lv_obj_set_size(spinboxRow, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(spinboxRow, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(spinboxRow, 0, 0);
+    lv_obj_set_flex_flow(spinboxRow, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(spinboxRow, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    _roller = lv_roller_create(_settingContainer);
-    lv_roller_set_options(_roller, options.c_str(), LV_ROLLER_MODE_NORMAL);
-    lv_roller_set_visible_row_count(_roller, 3);
-    lv_roller_set_selected(_roller, selectedIndex, LV_ANIM_OFF);
+    lv_obj_t* decrementButton = lv_button_create(spinboxRow);
+    lv_obj_set_size(decrementButton, kSpinboxButtonSize, kSpinboxButtonSize);
+    lv_obj_set_style_bg_image_src(decrementButton, LV_SYMBOL_MINUS, 0);
+    lv_obj_add_event_cb(decrementButton, spinboxDecrementTappedCb, LV_EVENT_CLICKED, this);
+
+    _spinbox = lv_spinbox_create(spinboxRow);
+    lv_spinbox_set_range(_spinbox, _stepMinutes, _maxMinutes);
+    lv_spinbox_set_step(_spinbox, _stepMinutes);
+    lv_spinbox_set_digit_format(_spinbox, String(_maxMinutes).length(), 0);
+    lv_spinbox_set_value(_spinbox, _minutes);
+    lv_obj_set_width(_spinbox, 90);
+
+    lv_obj_t* incrementButton = lv_button_create(spinboxRow);
+    lv_obj_set_size(incrementButton, kSpinboxButtonSize, kSpinboxButtonSize);
+    lv_obj_set_style_bg_image_src(incrementButton, LV_SYMBOL_PLUS, 0);
+    lv_obj_add_event_cb(incrementButton, spinboxIncrementTappedCb, LV_EVENT_CLICKED, this);
 
     lv_obj_t* startButton = lv_button_create(_settingContainer);
     lv_obj_t* startLabel = lv_label_create(startButton);
@@ -154,17 +157,13 @@ void TimerView::onCommand(const Command& command) {
     }
     _minutes = minutes;
 
-    for (size_t i = 0; i < _rollerValues.size(); ++i) {
-        if (_rollerValues[i] == _minutes) {
-            lv_roller_set_selected(_roller, static_cast<uint32_t>(i), LV_ANIM_OFF);
-            break;
-        }
+    if (_spinbox) {
+        lv_spinbox_set_value(_spinbox, _minutes);
     }
 }
 
 void TimerView::start() {
-    uint32_t selected = lv_roller_get_selected(_roller);
-    _minutes = selected < _rollerValues.size() ? _rollerValues[selected] : _minutes;
+    _minutes = lv_spinbox_get_value(_spinbox);
 
     _totalSeconds = _minutes * 60;
     _startMs = millis();
@@ -251,6 +250,16 @@ void TimerView::ringTimerCb(lv_timer_t* timer) {
         lv_timer_delete(timer);
         self->_ringTimer = nullptr;
     }
+}
+
+void TimerView::spinboxIncrementTappedCb(lv_event_t* event) {
+    auto* self = static_cast<TimerView*>(lv_event_get_user_data(event));
+    lv_spinbox_increment(self->_spinbox);
+}
+
+void TimerView::spinboxDecrementTappedCb(lv_event_t* event) {
+    auto* self = static_cast<TimerView*>(lv_event_get_user_data(event));
+    lv_spinbox_decrement(self->_spinbox);
 }
 
 void TimerView::startButtonTappedCb(lv_event_t* event) {

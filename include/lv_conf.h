@@ -49,6 +49,7 @@
 #define LV_USE_TABVIEW 1
 #define LV_USE_LABEL 1
 #define LV_USE_BUTTON 1
+#define LV_USE_BUTTONMATRIX 1
 #define LV_USE_BAR 1
 #define LV_USE_SWITCH 1
 #define LV_USE_SLIDER 1
@@ -57,6 +58,8 @@
 #define LV_USE_COLORWHEEL 1
 #define LV_USE_LIST 1
 #define LV_USE_SCALE 1
+#define LV_USE_TEXTAREA 1
+#define LV_USE_SPINBOX 1
 #define LV_USE_QRCODE 1
 
 // Larger readable size for ValueView's numeric labels (Phase 5) - the
