@@ -1,16 +1,9 @@
 #include "ScreenPowerPolicy.h"
 
 #include <M5Unified.h>
-#include <time.h>
 
+#include "MatrixRainView.h"
 #include "PopupOverlay.h"
-
-namespace {
-// time(nullptr) returns small values (seconds since boot-ish) before SNTP
-// has synced; treat anything before 2020-01-01 as "not yet synced" - same
-// threshold ClockView uses.
-constexpr time_t kMinValidEpoch = 1577836800;
-}  // namespace
 
 void ScreenPowerPolicy::begin() {
     _state = State::Active;
@@ -44,8 +37,6 @@ bool ScreenPowerPolicy::loop() {
         case State::Idle:
             if (now - _lastActivityMs >= kSleepTimeoutMs) {
                 enterAsleep();
-            } else if (now - _lastIdleClockRefreshMs >= kIdleClockRefreshMs) {
-                refreshIdleClock();
             }
             break;
         case State::Asleep:
@@ -58,13 +49,13 @@ void ScreenPowerPolicy::enterIdle() {
     Serial.println("[ScreenPower] Active -> Idle");
     _state = State::Idle;
     M5.Display.setBrightness(kDimBrightness);
-    _lastIdleClockRefreshMs = 0;  // force an immediate refresh below
-    refreshIdleClock();
+    _matrixRainView.start();
 }
 
 void ScreenPowerPolicy::enterAsleep() {
     Serial.println("[ScreenPower] Idle -> Asleep");
     _state = State::Asleep;
+    _matrixRainView.stop();
     _popupOverlay.dismiss();
     M5.Display.sleep();
 }
@@ -74,19 +65,8 @@ void ScreenPowerPolicy::wake() {
     if (_state == State::Asleep) {
         M5.Display.wakeup();
     }
+    _matrixRainView.stop();
     _popupOverlay.dismiss();
     M5.Display.setBrightness(kActiveBrightness);
     _state = State::Active;
-}
-
-void ScreenPowerPolicy::refreshIdleClock() {
-    _lastIdleClockRefreshMs = millis();
-
-    time_t now = time(nullptr);
-    struct tm timeInfo;
-    char buf[9] = "--:--:--";
-    if (now >= kMinValidEpoch && localtime_r(&now, &timeInfo) != nullptr) {
-        snprintf(buf, sizeof(buf), "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-    }
-    _popupOverlay.showAlert(buf, "Tap or press a button to wake");
 }

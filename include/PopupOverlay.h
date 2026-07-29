@@ -5,8 +5,9 @@
 
 // One reusable overlay drawn on lv_layer_top() (always above whatever the
 // active tab is showing), used for AlertView/NotificationView inbound-
-// command popups and, once Phase 8's idle timeout lands, the ClockView
-// takeover. Two dismiss behaviors:
+// command popups. (The idle-timeout screen is a separate full-screen
+// MatrixRainView overlay, not this one - see ScreenPowerPolicy.) Two
+// dismiss behaviors:
 //   - showAlert(): stays until the user taps it (mirrors an incoming
 //     command the user must acknowledge).
 //   - showNotification(): auto-dismisses after autoDismissMs, with an

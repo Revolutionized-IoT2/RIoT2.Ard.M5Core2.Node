@@ -110,10 +110,10 @@ popup overlay above the current tab rather than taking over navigation.
 
 ## Screen power management
 
-After 30 seconds of no touch/button activity, the display dims and shows a live clock as an
-idle overlay; after 5 minutes of continued inactivity it goes to sleep
-(`M5.Display.sleep()`). Any touch or button press wakes it back up — a wake-only touch/button
-press is swallowed (it won't also change tabs).
+After 30 seconds of no touch/button activity, the display dims and shows a full-screen
+"digital rain" animation as an idle overlay; after 5 minutes of continued inactivity it goes to
+sleep (`M5.Display.sleep()`). Any touch or button press wakes it back up — a wake-only
+touch/button press is swallowed (it won't also change tabs).
 
 ## Vibration feedback
 

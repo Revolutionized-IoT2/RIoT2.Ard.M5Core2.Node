@@ -23,6 +23,7 @@
 #include "HapticFeedback.h"
 #include "LvglDisplay.h"
 #include "Manifest.h"
+#include "MatrixRainView.h"
 #include "NavigationController.h"
 #include "PopupOverlay.h"
 #include "QrSettingsView.h"
@@ -65,7 +66,8 @@ PeripheralManager peripheralManager;
 LvglDisplay lvglDisplay;
 NavigationController navigationController;
 PopupOverlay popupOverlay;
-ScreenPowerPolicy screenPowerPolicy(popupOverlay);
+MatrixRainView matrixRainView;
+ScreenPowerPolicy screenPowerPolicy(popupOverlay, matrixRainView);
 ViewManager viewManager;
 
 // Hosts showStatus()'s text until the first NodeConfiguration arrives and
@@ -270,6 +272,7 @@ void setup() {
 
     navigationController.begin();
     popupOverlay.begin();
+    matrixRainView.begin();
     screenPowerPolicy.begin();
     navigationController.setPopupDismissHandler([] { return popupOverlay.dismiss(); });
 
