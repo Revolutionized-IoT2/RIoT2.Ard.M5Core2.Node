@@ -9,6 +9,10 @@ constexpr int32_t kQrSize = 160;
 void QrSettingsView::build(lv_obj_t* parent, const String& apSsid, const IPAddress& apIp) {
     lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    // This view's content doesn't need to scroll - suppress the scrollbar
+    // LVGL otherwise auto-shows on the right edge when the flex column's
+    // content is tall enough to (barely) overflow the tab's content area.
+    lv_obj_set_scrollbar_mode(parent, LV_SCROLLBAR_MODE_OFF);
 
     String url = String("http://") + apIp.toString() + "/";
 

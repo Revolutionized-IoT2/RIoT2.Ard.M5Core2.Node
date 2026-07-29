@@ -21,19 +21,13 @@ lv_obj_t* NavigationController::addTab(const String& title) {
     // button here with a solid background and high-contrast text for
     // guaranteed contrast instead of relying on the theme's built-in checked
     // style.
-    //
-    // Text color is black, not white: this theme's primary color is Material
-    // Blue 500 (#2196F3), bright enough that black text against it has a
-    // WCAG contrast ratio of ~6.7:1 vs. white text's ~3.1:1 - white all but
-    // disappears into the anti-aliased edge blending against this particular
-    // blue, black doesn't.
     uint32_t index = lv_tabview_get_tab_count(_tabview) - 1;
     lv_obj_t* tabBar = lv_tabview_get_tab_bar(_tabview);
     lv_obj_t* tabButton = lv_obj_get_child(tabBar, index);
     if (tabButton) {
         lv_obj_set_style_bg_opa(tabButton, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);
         lv_obj_set_style_bg_color(tabButton, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_CHECKED);
-        lv_obj_set_style_text_color(tabButton, lv_color_black(), LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_text_color(tabButton, lv_color_white(), LV_PART_MAIN | LV_STATE_CHECKED);
 
         // The theme's default LV_FONT_MONTSERRAT_14 had a broken/missing
         // pixel in certain glyphs (e.g. the "u" in "Status"); this custom
