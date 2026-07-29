@@ -1,5 +1,7 @@
 #include "NavigationController.h"
 
+#include "lv_font_montserrat_18_bpp8.h"
+
 void NavigationController::begin() {
     _tabview = lv_tabview_create(lv_screen_active());
     lv_tabview_set_tab_bar_position(_tabview, LV_DIR_BOTTOM);
@@ -7,7 +9,40 @@ void NavigationController::begin() {
 }
 
 lv_obj_t* NavigationController::addTab(const String& title) {
-    return lv_tabview_add_tab(_tabview, title.c_str());
+    lv_obj_t* content = lv_tabview_add_tab(_tabview, title.c_str());
+
+    // LVGL's default theme draws the *active* tab button as a light tint of
+    // the primary color with label text in that same primary color - i.e.
+    // low-contrast color-on-its-own-tint (confirmed in lvgl's
+    // lv_theme_default.c: LV_STATE_CHECKED gets styles.bg_color_primary_muted,
+    // whose bg is the primary color at 20% opacity and whose text color is
+    // the *same* primary color at full opacity). That's barely readable
+    // regardless of which hue the theme picks, so override the checked tab
+    // button here with a solid background and high-contrast text for
+    // guaranteed contrast instead of relying on the theme's built-in checked
+    // style.
+    //
+    // Text color is black, not white: this theme's primary color is Material
+    // Blue 500 (#2196F3), bright enough that black text against it has a
+    // WCAG contrast ratio of ~6.7:1 vs. white text's ~3.1:1 - white all but
+    // disappears into the anti-aliased edge blending against this particular
+    // blue, black doesn't.
+    uint32_t index = lv_tabview_get_tab_count(_tabview) - 1;
+    lv_obj_t* tabBar = lv_tabview_get_tab_bar(_tabview);
+    lv_obj_t* tabButton = lv_obj_get_child(tabBar, index);
+    if (tabButton) {
+        lv_obj_set_style_bg_opa(tabButton, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(tabButton, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_text_color(tabButton, lv_color_black(), LV_PART_MAIN | LV_STATE_CHECKED);
+
+        // The theme's default LV_FONT_MONTSERRAT_14 had a broken/missing
+        // pixel in certain glyphs (e.g. the "u" in "Status"); this custom
+        // bpp8 Montserrat font (already used by QrSettingsView) doesn't
+        // have that defect, so it's used here for the tab bar labels too.
+        lv_obj_set_style_text_font(tabButton, &lv_font_montserrat_18_bpp8, LV_PART_MAIN);
+    }
+
+    return content;
 }
 
 void NavigationController::clearTabs() {

@@ -10,18 +10,51 @@ void LvglDisplay::begin() {
     const int32_t height = M5.Display.height();
 
     // Two full-frame 16bpp buffers in PSRAM (~150KB each on Core2's 320x240
-    // panel) - trivial against the 8MB of onboard PSRAM. Registered for
-    // LV_DISPLAY_RENDER_MODE_PARTIAL: LVGL only redraws/pushes the area(s)
-    // that actually changed each frame, alternating between the two buffers
-    // so rendering the next frame can start before the previous flush (the
-    // SPI push to the panel) finishes.
+    // panel). Reverted back from small (40-line), reused internal-RAM
+    // partial buffers: those were tried as a fix for reported "grainy"/
+    // color-fringed anti-aliased text, on the theory that PSRAM + a
+    // CPU-driven SPI write loop was the culprit, but the fringing persisted
+    // - and a *reused* small buffer is itself a real, distinct risk for
+    // exactly that symptom: solid/opaque pixels always get directly
+    // overwritten with a fully-computed color, so they're immune to stale
+    // buffer content, but blended (anti-aliased) pixels can depend on
+    // whatever backdrop is already sitting in the destination buffer at
+    // blend time - a small buffer gets reused across many unrelated screen
+    // regions every frame, so if any redraw path ever composites text
+    // without first re-filling the full background in that reused chunk,
+    // the blend reads leftover pixel data from whatever *other* region was
+    // last rendered into that chunk, which looks exactly like random,
+    // rainbow-colored noise concentrated at blended edges while flat fills
+    // stay clean. A full-frame buffer has no such cross-region reuse within
+    // a frame, sidestepping that risk entirely.
     size_t bufBytes = static_cast<size_t>(width) * static_cast<size_t>(height) * sizeof(uint16_t);
     _buf1 = static_cast<uint16_t*>(heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM));
     _buf2 = static_cast<uint16_t*>(heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM));
 
     _display = lv_display_create(width, height);
     lv_display_set_flush_cb(_display, flushCb);
-    lv_display_set_buffers(_display, _buf1, _buf2, bufBytes, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    // LVGL's internal RGB565 pixel format is packed in native CPU byte
+    // order (little-endian on ESP32), but M5GFX/LovyanGFX's pushPixels()
+    // expects the wire byte order the SPI panel itself uses - the two
+    // don't match. Pure black/white (and other byte-swap-palindromic
+    // values) are unaffected either way, so flat fills always looked
+    // correct, but alpha-blended anti-aliased edge pixels are almost never
+    // palindromic - handing them to the panel un-swapped scrambles each one
+    // into an unrelated color, which looks exactly like scattered
+    // multicolored/"rainbow" noise concentrated at blended edges while
+    // solid fills stay clean (confirmed: LVGL's own official LovyanGFX
+    // driver, src/drivers/display/lovyan_gfx/lv_lovyan_gfx.cpp, sets this
+    // exact same color format for this exact display family). Telling LVGL
+    // to render directly in the swapped format avoids needing a separate
+    // lv_draw_sw_rgb565_swap() pass over the buffer in flushCb().
+    lv_display_set_color_format(_display, LV_COLOR_FORMAT_RGB565_SWAPPED);
+    // FULL, not PARTIAL: with two full-frame buffers already available,
+    // FULL mode makes LVGL recompute the *entire* screen into one buffer
+    // every refresh (alternating buf1/buf2), rather than only the
+    // invalidated area(s) - removing any possibility of a redraw path
+    // compositing against stale/partial buffer content (see the comment
+    // above on why that's a real risk for the reported color fringing).
+    lv_display_set_buffers(_display, _buf1, _buf2, bufBytes, LV_DISPLAY_RENDER_MODE_FULL);
 
     _indev = lv_indev_create();
     lv_indev_set_type(_indev, LV_INDEV_TYPE_POINTER);

@@ -241,6 +241,7 @@ void setup() {
     // everything below that touches the screen (showStatus(), provisioning's
     // own UI) needs LVGL already owning the display.
     lvglDisplay.begin();
+
     navigationController.begin();
     popupOverlay.begin();
     screenPowerPolicy.begin();

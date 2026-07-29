@@ -6,6 +6,13 @@
 // documented, supported way to use a minimal lv_conf.h with
 // -DLV_CONF_INCLUDE_SIMPLE.
 
+// 16bpp (RGB565), matching the panel's native format - reverted back from a
+// 32bpp (XRGB8888) + downconvert experiment (theory: LVGL's RGB565 blend
+// math quantizes to 5/6/5 bits *before* alpha-mixing AA glyph edges, see
+// git history) that built and ran but did not measurably reduce the
+// reported "grainy" text on real hardware, so it wasn't worth its ~2x RAM/
+// CPU cost. See LvglDisplay.cpp for the current buffering approach (small
+// internal-RAM partial buffers, matching 0xxon/LVGL-PlatformIO-Example).
 #define LV_COLOR_DEPTH 16
 
 // LVGL's builtin allocator, backed by a fixed-size static arena
@@ -49,5 +56,14 @@
 // default LV_FONT_MONTSERRAT_14 stays enabled by LVGL's own default and
 // remains every other widget's font.
 #define LV_FONT_MONTSERRAT_24 1
+
+// NOTE: LV_FONT_UNSCII_16 was tried here as an anti-aliasing A/B test and
+// reverted - it rendered corrupted/overlapping glyphs on this display
+// (not just a different style), so bpp=1 bitmap fonts are not a viable
+// option here without further investigation.
+//
+// QrSettingsView's header/SSID labels use a custom-generated bpp=8 build of
+// Montserrat 18px instead (src/lv_font_montserrat_18_bpp8.c) - no lv_conf.h
+// flag needed for it, it's a standalone font source file.
 
 #endif  // LV_CONF_H
