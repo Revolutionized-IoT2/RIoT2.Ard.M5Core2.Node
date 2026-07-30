@@ -11,6 +11,12 @@ void HapticFeedback::vibrate(unsigned long ms) {
     if (!_enabled || ms == 0) {
         return;
     }
+    // The Core2's ERM (eccentric rotating mass) motor needs time to spin up
+    // before it's physically felt - pulses shorter than this floor (e.g.
+    // tap()'s 30ms) turn the motor on and back off again before it ever gets
+    // going, so they're silently "applied" but imperceptible. Every caller
+    // goes through here, so clamping once covers all of them.
+    ms = max(ms, kMinPulseMs);
     if (_offTimer) {
         // A pulse is already running - restart it rather than stacking
         // timers; M5.Power.setVibration() is idempotent to call again.

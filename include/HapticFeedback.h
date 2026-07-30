@@ -36,6 +36,11 @@ private:
 
     static constexpr uint8_t kVibrationLevel = 200;
 
+    // Floor enforced by vibrate() - see its .cpp doc comment for why calls
+    // shorter than this (e.g. tap()'s 30ms) would otherwise be
+    // imperceptible on the Core2's ERM motor.
+    static constexpr unsigned long kMinPulseMs = 60;
+
     bool _enabled = true;
     lv_timer_t* _offTimer = nullptr;
 
