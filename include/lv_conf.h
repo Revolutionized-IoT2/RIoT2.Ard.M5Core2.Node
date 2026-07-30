@@ -15,15 +15,44 @@
 // internal-RAM partial buffers, matching 0xxon/LVGL-PlatformIO-Example).
 #define LV_COLOR_DEPTH 16
 
-// LVGL's builtin allocator, backed by a fixed-size static arena
-// (LV_MEM_SIZE) kept in internal RAM - LVGL's own object/style metadata is
-// made of many small, latency-sensitive allocations, so it deliberately
-// does NOT share the PSRAM-backed frame buffers allocated in
-// LvglDisplay.cpp.
+// NOTE: this arena used to be a static internal-DRAM array sized 48KB
+// (even below LVGL's own 64KB default) - too small once ColorSchemeView's
+// gradient-heavy hue-bar/SV-pad rebuild (many more lv_obj_t + per-object
+// styles/gradients than any other view) is added on top of every other
+// eagerly-built tab. LV_USE_ASSERT_MALLOC defaults to 1 and
+// LV_ASSERT_HANDLER defaults to a silent `while(1);` halt (LV_USE_LOG is 0
+// by default too - no message printed first), so exhausting this arena
+// doesn't crash/reboot, it completely and silently freezes the device.
+// Internal DRAM turned out to have only ~12KB of dram0_0_seg headroom left
+// on this build (confirmed by bisecting a plain size increase - even 64KB
+// already overflowed dram0_0_seg by 4064 bytes) once WiFi/BLE/etc.'s own
+// static allocations are accounted for - not enough margin for future
+// views. So instead of fighting internal DRAM for a few more KB, point
+// LVGL's allocator pool at PSRAM (8MB, effectively unlimited here) via
+// LV_MEM_POOL_INCLUDE/LV_MEM_POOL_ALLOC (see lv_mem_core_builtin.c - when
+// these are defined it calls LV_MEM_POOL_ALLOC(LV_MEM_SIZE) for the pool
+// instead of a static internal-RAM array). If ColorSchemeView (or any
+// future view) still somehow exhausts this much larger pool, see
+// LvglDisplay.cpp::lvglLogPrintCb() - an LV_ASSERT_MALLOC failure now
+// prints "[LVGL] ... Failed to allocate ..." over Serial right before
+// halting, instead of freezing silently.
 #define LV_USE_STDLIB_MALLOC LV_STDLIB_BUILTIN
 #define LV_USE_STDLIB_STRING LV_STDLIB_BUILTIN
 #define LV_USE_STDLIB_SPRINTF LV_STDLIB_BUILTIN
-#define LV_MEM_SIZE (48 * 1024)
+#define LV_MEM_POOL_INCLUDE "esp_heap_caps.h"
+#define LV_MEM_POOL_ALLOC(size) heap_caps_malloc((size), MALLOC_CAP_SPIRAM)
+#define LV_MEM_SIZE (512 * 1024)
+
+// Routes LV_LOG_WARN/ERROR (incl. LV_ASSERT_MALLOC failure messages, e.g.
+// "Failed to allocate item for the gradient") to a callback registered in
+// LvglDisplay.cpp via lv_log_register_print_cb() - without this, an
+// LV_ASSERT_MALLOC failure hits LV_ASSERT_HANDLER's default `while(1);`
+// halt completely silently (no message at all), which is indistinguishable
+// from any other freeze. LV_LOG_PRINTF stays 0 since vendored/library code
+// calling raw libc printf() has been observed to stop reaching the serial
+// terminal shortly after boot on this target - our callback uses
+// Serial.printf() instead (see LvglDisplay.cpp::lvglLogPrintCb()).
+#define LV_USE_LOG 1
 
 // No RTOS task pump here - main.cpp calls lv_timer_handler() once per
 // Arduino loop() iteration instead.

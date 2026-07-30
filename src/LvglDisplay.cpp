@@ -18,11 +18,22 @@ namespace {
 uint32_t lvglTickGetCb() {
     return millis();
 }
+
+// Registered below via lv_log_register_print_cb() so LV_LOG_WARN/ERROR
+// (including the message LV_ASSERT_MALLOC prints right before the default
+// LV_ASSERT_HANDLER's silent `while(1);` halt) actually reaches the serial
+// monitor - Serial.printf() (our own app code), not raw printf() from
+// vendored library code, matches this project's proven-reliable logging
+// channel.
+void lvglLogPrintCb(lv_log_level_t level, const char* buf) {
+    Serial.printf("[LVGL] %s", buf);
+}
 }  // namespace
 
 void LvglDisplay::begin() {
     lv_init();
     lv_tick_set_cb(lvglTickGetCb);
+    lv_log_register_print_cb(lvglLogPrintCb);
 
     const int32_t width = M5.Display.width();
     const int32_t height = M5.Display.height();
