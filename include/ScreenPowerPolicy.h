@@ -36,8 +36,8 @@ public:
 private:
     enum class State { Active, Idle, Asleep };
 
-    static constexpr unsigned long kIdleTimeoutMs = 30000;
-    static constexpr unsigned long kSleepTimeoutMs = 300000;
+    static constexpr unsigned long kIdleTimeoutMs = 60000;
+    static constexpr unsigned long kSleepTimeoutMs = 240000;
     static constexpr uint8_t kDimBrightness = 15;
     static constexpr uint8_t kActiveBrightness = 255;
 
