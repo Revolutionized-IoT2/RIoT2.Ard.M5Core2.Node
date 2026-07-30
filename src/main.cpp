@@ -20,6 +20,7 @@
 #include <riot2/WifiConnection.h>
 
 #include "Buzzer.h"
+#include "DiagnosticsView.h"
 #include "HapticFeedback.h"
 #include "LvglDisplay.h"
 #include "Manifest.h"
@@ -29,6 +30,7 @@
 #include "QrSettingsView.h"
 #include "Rfid2Peripheral.h"
 #include "ScreenPowerPolicy.h"
+#include "SplashView.h"
 #include "ViewFactory.h"
 #include "ViewManager.h"
 
@@ -39,6 +41,12 @@ namespace {
 // is unlikely to happen by accident during normal touch/LVGL navigation
 // (added in a later phase).
 constexpr unsigned long kFactoryResetHoldMs = 5000;
+
+// Hold duration for BtnB (middle virtual button) to toggle the full-screen
+// DiagnosticsView overlay - shorter than kFactoryResetHoldMs since it's a
+// single-button gesture with no accidental-activation risk from normal tab
+// navigation (which only ever uses BtnB clicks, not holds).
+constexpr unsigned long kDiagnosticsHoldMs = 3000;
 
 // Reserved MQTT command id (RIoT2.Ard node-specific extension, not part of
 // RIoT2.Core's Command contract) that triggers an OTA update instead of
@@ -58,7 +66,12 @@ NodeConfig config;
 WifiConnection wifi;
 MqttConnection mqtt;
 ProvisioningPortal provisioning;
-OrchestratorClient orchestratorClient;
+// enableCache=false: this node never falls back to an on-flash cached
+// NodeConfiguration (see loadCached()'s removal in setup()) - without a
+// live Orchestrator there is nothing this node can meaningfully do, so it
+// always shows SplashView (never a stale/offline tab UI) until a real fetch
+// succeeds.
+OrchestratorClient orchestratorClient{false};
 // Grove-port peripherals (PORT.A / PORT.B) - configured the same way as
 // Views but never shown on screen, see PeripheralManager.h.
 PeripheralManager peripheralManager;
@@ -69,16 +82,18 @@ PopupOverlay popupOverlay;
 MatrixRainView matrixRainView;
 ScreenPowerPolicy screenPowerPolicy(popupOverlay, matrixRainView);
 ViewManager viewManager;
+SplashView splashView;
+DiagnosticsView diagnosticsView;
 
-// Hosts showStatus()'s text until the first NodeConfiguration arrives and
-// viewManager.rebuild() replaces every tab (including this one) with real
-// per-DeviceConfiguration views - see handleConfigurationUpdated(), which
-// nulls this back out right after that happens so showStatus() silently
-// no-ops instead of touching a deleted lv_obj_t.
-lv_obj_t* statusLabel = nullptr;
+// True once the first live NodeConfiguration has been applied and
+// NavigationController::begin() has created the real tabview - see
+// handleConfigurationUpdated(). Until then, SplashView (not a tab UI) is
+// all that's shown.
+bool tabsInitialized = false;
 
 WifiState lastWifiState = WifiState::Disconnected;
 MqttState lastMqttState = MqttState::Disconnected;
+unsigned long lastDiagnosticsUpdateMs = 0;
 bool factoryResetTriggered = false;
 bool factoryResetComboActive = false;
 unsigned long factoryResetComboStartMs = 0;
@@ -95,18 +110,6 @@ bool bleActive = false;
 // (and its rationale) in RIoT2.Ard.M5Dial.Node/src/main.cpp.
 bool pendingConfigFetch = false;
 String pendingApiBaseUrl;
-
-void showStatus(const String& line1, const String& line2 = "") {
-    if (!statusLabel) {
-        return;
-    }
-    String text = line1;
-    if (line2.length()) {
-        text += "\n";
-        text += line2;
-    }
-    lv_label_set_text(statusLabel, text.c_str());
-}
 
 void handleCommand(const String& topic, const String& payload) {
     JsonDocument doc;
@@ -127,11 +130,11 @@ void handleCommand(const String& topic, const String& payload) {
         Serial.printf("[OTA] Update requested: %s\n", url.c_str());
         Buzzer::confirm();
         HapticFeedback::instance().confirm();
-        showStatus("Updating...", "Do not power off");
+        popupOverlay.showAlert("Updating...", "Do not power off");
         if (!OtaUpdater::performUpdate(url)) {
             Buzzer::error();
             HapticFeedback::instance().error();
-            showStatus("Update failed", "See serial log");
+            popupOverlay.showAlert("Update failed", "See serial log");
         }
         return;
     }
@@ -178,6 +181,10 @@ void handleConfigurationMessage(const String& topic, const String& payload) {
     // connection right as the fetch completes.
     pendingApiBaseUrl = apiBaseUrl;
     pendingConfigFetch = true;
+
+    if (!tabsInitialized) {
+        splashView.setConfigStatus("Config: fetching from Orchestrator...");
+    }
 }
 
 void handleConfigurationUpdated(const NodeConfiguration& nodeConfiguration) {
@@ -187,16 +194,22 @@ void handleConfigurationUpdated(const NodeConfiguration& nodeConfiguration) {
                       static_cast<unsigned>(device.commandTemplates.size()),
                       static_cast<unsigned>(device.reportTemplates.size()));
     }
+    // First live configuration: SplashView has done its job (no cached/
+    // offline UI is ever shown - see OrchestratorClient's enableCache=false
+    // above), so tear it down and only now create the real tabview.
+    if (!tabsInitialized) {
+        splashView.destroy();
+        navigationController.begin();
+        navigationController.setPopupDismissHandler([] { return popupOverlay.dismiss(); });
+        tabsInitialized = true;
+    }
+
     // ViewManager rebuilds first so its tabs exist by the time
     // PeripheralManager's isKnownElsewhere predicate below consults
     // ViewFactory - order doesn't strictly matter here (the predicate only
     // checks registration, not the live entries), but matches the
     // dependency direction conceptually.
     viewManager.rebuild(nodeConfiguration, navigationController);
-    // The temporary "Status" tab from setup() no longer exists - clearTabs()
-    // (called by rebuild() above) just replaced it with real views;
-    // showStatus() checks for null so this simply becomes a no-op from here on.
-    statusLabel = nullptr;
 
     peripheralManager.rebuild(nodeConfiguration,
                                [](const String& classFullName) { return ViewFactory::instance().isRegistered(classFullName); });
@@ -205,11 +218,7 @@ void handleConfigurationUpdated(const NodeConfiguration& nodeConfiguration) {
     // any (re)connect WifiConnection::loop() might do concurrently): ESP32's
     // WiFi/BT coexistence layer hard-aborts (crash/reboot, not just a failed
     // connection) if WiFi modem sleep is disabled while a BLE radio is
-    // active - see WifiConnection::setModemSleepEnabled()'s doc comment. A
-    // cached NodeConfiguration containing a BLEView means this rebuild (and
-    // thus BLE startup below) can happen as early as loadCached() in
-    // setup(), before wifi.begin() has even run once - so this can't be a
-    // one-time setup() decision, it must be re-derived on every rebuild.
+    // active - see WifiConnection::setModemSleepEnabled()'s doc comment.
     if (viewManager.hasBleConsumer()) {
         wifi.setModemSleepEnabled(true);
     }
@@ -227,7 +236,7 @@ void factoryReset() {
     Serial.println("[Config] Factory reset requested, clearing NodeConfig");
     Buzzer::error();
     HapticFeedback::instance().error();
-    showStatus("Resetting...", "Clearing config");
+    popupOverlay.showAlert("Resetting...", "Clearing config");
     mqtt.publishOfflineAndDisconnect();
     NodeConfigStore::clear();
     delay(500);
@@ -262,21 +271,31 @@ void setup() {
     // thirds of that strip's width).
     M5.setTouchButtonHeight(40);
 
+    // Default hold threshold is 500ms (see Button_Class.hpp) - raised so
+    // BtnB's normal click (tab nav/menu) still works for anything shorter,
+    // and wasHold() only fires once the diagnostics-toggle gesture's own
+    // longer hold duration is reached.
+    M5.BtnB.setHoldThresh(kDiagnosticsHoldMs);
+
     Buzzer::begin();
 
     // M5.Display.width()/height() (read inside LvglDisplay::begin()) are
     // only valid once M5.begin() has run, so this must come after it - and
-    // everything below that touches the screen (showStatus(), provisioning's
+    // everything below that touches the screen (SplashView, provisioning's
     // own UI) needs LVGL already owning the display.
     lvglDisplay.begin();
 
-    navigationController.begin();
     popupOverlay.begin();
     matrixRainView.begin();
     screenPowerPolicy.begin();
-    navigationController.setPopupDismissHandler([] { return popupOverlay.dismiss(); });
 
-    lv_obj_t* statusTab = navigationController.addTab("Status");
+    // NavigationController::begin() (the real tabview) is deliberately NOT
+    // created here - it's deferred to handleConfigurationUpdated()'s first
+    // call, once a live NodeConfiguration has actually been fetched from
+    // the Orchestrator. Until then SplashView is the only thing on screen:
+    // this node can't do anything useful without the Orchestrator, so
+    // there's no cached/offline tab UI to fall back to (see
+    // OrchestratorClient's enableCache=false above).
 
     config = NodeConfigStore::load();
     HapticFeedback::instance().setEnabled(config.vibrateEnabled);
@@ -285,22 +304,22 @@ void setup() {
         Serial.println("[Config] No valid NodeConfig in NVS. Starting provisioning portal.");
         mode = AppMode::Provisioning;
         provisioning.begin();
-        QrSettingsView::build(statusTab, provisioning.apSsid(), provisioning.apIp());
+        QrSettingsView::build(lv_screen_active(), provisioning.apSsid(), provisioning.apIp());
         return;
     }
 
-    statusLabel = lv_label_create(statusTab);
-    lv_obj_set_width(statusLabel, lv_pct(90));
-    lv_label_set_long_mode(statusLabel, LV_LABEL_LONG_MODE_WRAP);
-    lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_center(statusLabel);
-
     Serial.printf("[Config] Loaded node id=%s name=%s\n", config.id.c_str(), config.name.c_str());
-    showStatus("Starting...", config.name);
+    splashView.build(config.id);
 
-    // Callbacks must be wired before loadCached() below, so a cache hit
-    // rebuilds the real views/reports wiring immediately instead of firing
-    // into an unset std::function.
+    // Node id/name never change at runtime, so unlike the other
+    // NodeConfiguration-driven views this only needs to be built once (see
+    // the BtnB hold-to-toggle gesture in loop()).
+    diagnosticsView.build(config.id, config.name);
+
+    // Callbacks must be wired before requestConfiguration() can ever run
+    // (triggered from loop() once the orchestrator handshake completes), so
+    // a fetch immediately builds the real tab UI instead of firing into an
+    // unset std::function.
     viewManager.onReport(handleReport);
     peripheralManager.onReport(handleReport);
     orchestratorClient.onConfigurationUpdated(handleConfigurationUpdated);
@@ -324,12 +343,6 @@ void setup() {
     BleScanner::instance().onDeviceLost([](const String& address) { viewManager.notifyBleDeviceLost(address); });
     BleScanner::instance().onAdvertisement(
         [](const BleAdvertisement& advertisement) { viewManager.notifyBleAdvertisement(advertisement); });
-
-    // Rebuilds the UI from the last-known configuration (if any) before
-    // Wi-Fi/MQTT/the orchestrator are even reachable - see
-    // OrchestratorClient::loadCached(). A live fetch (once the orchestrator
-    // re-announce handshake completes) will rebuild again with fresh data.
-    orchestratorClient.loadCached();
 
     wifi.begin(config.wifiSsid, config.wifiPassword);
 
@@ -377,7 +390,7 @@ void loop() {
     // the normal BtnA/B/C dispatch below for this one frame.
     bool wokeFromIdle = screenPowerPolicy.loop();
 
-    if (!wokeFromIdle) {
+    if (!wokeFromIdle && tabsInitialized) {
         if (M5.BtnA.wasClicked()) {
             navigationController.onButtonPress(NavigationController::Button::A);
         }
@@ -386,6 +399,18 @@ void loop() {
         }
         if (M5.BtnC.wasClicked()) {
             navigationController.onButtonPress(NavigationController::Button::C);
+        }
+    }
+
+    // Holding BtnB for kDiagnosticsHoldMs toggles the full-screen
+    // DiagnosticsView overlay - wasHold() fires exactly once per hold (see
+    // Button_Class::setRawState()), independent of tabsInitialized/
+    // wokeFromIdle so it works even while the splash screen is showing.
+    if (M5.BtnB.wasHold()) {
+        if (diagnosticsView.isVisible()) {
+            diagnosticsView.hide();
+        } else {
+            diagnosticsView.show();
         }
     }
 
@@ -408,8 +433,18 @@ void loop() {
     if (statusChanged) {
         lastWifiState = wifi.state();
         lastMqttState = mqtt.state();
-        String wifiLine = wifi.isConnected() ? "WiFi: connected" : "WiFi: connecting...";
-        String mqttLine = mqtt.isConnected() ? "MQTT: connected" : "MQTT: connecting...";
-        showStatus(wifiLine, mqttLine);
+        if (!tabsInitialized) {
+            splashView.setWifiStatus(String("WiFi: ") + (wifi.isConnected() ? "connected" : "connecting..."));
+            splashView.setMqttStatus(String("MQTT: ") + (mqtt.isConnected() ? "connected" : "connecting..."));
+        }
+    }
+
+    // DiagnosticsView has no timer of its own - throttled to ~1/s here so
+    // its heap/uptime labels stay reasonably fresh without churning LVGL
+    // label text on every single loop() iteration. Only bothers refreshing
+    // while actually visible.
+    if (diagnosticsView.isVisible() && (millis() - lastDiagnosticsUpdateMs) >= 1000) {
+        lastDiagnosticsUpdateMs = millis();
+        diagnosticsView.update(wifi, mqtt);
     }
 }
