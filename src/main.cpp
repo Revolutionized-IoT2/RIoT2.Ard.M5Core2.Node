@@ -53,6 +53,11 @@ constexpr unsigned long kDiagnosticsHoldMs = 3000;
 // being routed to a view: { "id": "system.ota", "value": "<firmware url>" }.
 const char* const kOtaCommandId = "system.ota";
 
+// Total touch displacement (px, either axis) from touch-down beyond which a
+// gesture is treated as a scroll/swipe rather than a tap - see
+// updateScrollSuppression()'s doc comment below for why this is needed.
+constexpr int kScrollSuppressDistancePx = 12;
+
 // Core2's Grove PORT.A / PORT.B pin table (GpioPeripheral itself is
 // board-agnostic - see riot2/GpioPeripheral.h). B2/GPIO36 is input-only
 // (ADC1_CH0) - GpioPeripheral::begin() logs a warning if a commandTemplate
@@ -97,6 +102,12 @@ unsigned long lastDiagnosticsUpdateMs = 0;
 bool factoryResetTriggered = false;
 bool factoryResetComboActive = false;
 unsigned long factoryResetComboStartMs = 0;
+
+// Touch-down anchor point and drag-detected flag for updateScrollSuppression()
+// below - lives across loop() iterations for the duration of one touch.
+int touchDownX = 0;
+int touchDownY = 0;
+bool touchWasScrollLike = false;
 
 // Set once viewManager.hasBleConsumer() first goes true (see
 // handleConfigurationUpdated()) - BleScanner::begin() only ever needs to run
@@ -243,6 +254,40 @@ void factoryReset() {
     ESP.restart();
 }
 
+// M5Unified's virtual BtnA/B/C touch zones (see M5.setTouchButtonHeight() in
+// setup()) only look at each frame's *instantaneous* touch position/motion
+// (see M5Unified.cpp's update(): a touch only counts toward a button if it's
+// currently inside the bottom strip AND not moving *that exact frame*) -
+// it never considers the touch's overall gesture history. A vertical scroll
+// (a tab's scrollable content, or the main menu grid) or a horizontal tab
+// swipe that happens to end with the finger lifting inside that same bottom
+// strip therefore still fires a virtual button click (most disruptively
+// BtnB, which opens the main menu) even though the user never intended to
+// press a button - touch controllers commonly report one or two near-zero-
+// delta samples right before liftoff, which is enough to satisfy "not
+// moving this frame". Tracked here instead, using the touch's total
+// displacement from its touch-down point (which M5Unified's own
+// touch_detail_t conveniently keeps as a fixed anchor for the whole
+// gesture, see base_x/base_y in Touch_Class.hpp) - a real tap never moves
+// far from where it started, so anything past kScrollSuppressDistancePx is
+// a scroll/swipe, not a tap, and every BtnA/B/C click following it this
+// touch is suppressed below.
+void updateScrollSuppression() {
+    if (M5.Touch.getCount() == 0) {
+        return;
+    }
+    auto detail = M5.Touch.getDetail(0);
+    if (detail.wasPressed()) {
+        touchDownX = detail.x;
+        touchDownY = detail.y;
+        touchWasScrollLike = false;
+    } else if (detail.isPressed() &&
+               (abs(detail.x - touchDownX) > kScrollSuppressDistancePx ||
+                abs(detail.y - touchDownY) > kScrollSuppressDistancePx)) {
+        touchWasScrollLike = true;
+    }
+}
+
 }  // namespace
 
 void setup() {
@@ -360,6 +405,7 @@ void setup() {
 
 void loop() {
     M5.update();
+    updateScrollSuppression();
     lv_timer_handler();
 
     if (mode == AppMode::Provisioning) {
@@ -390,7 +436,7 @@ void loop() {
     // the normal BtnA/B/C dispatch below for this one frame.
     bool wokeFromIdle = screenPowerPolicy.loop();
 
-    if (!wokeFromIdle && tabsInitialized) {
+    if (!wokeFromIdle && tabsInitialized && !touchWasScrollLike) {
         if (M5.BtnA.wasClicked()) {
             navigationController.onButtonPress(NavigationController::Button::A);
         }
