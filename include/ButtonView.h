@@ -42,6 +42,9 @@ private:
     String _subHeader;
 
     void applyVisualState(uint32_t btnId, bool active);
+    // lv_buttonmatrix has no built-in text wrapping - long labels are broken
+    // onto a second line in place so they don't spill past their button's edges.
+    void wrapLongButtonLabels();
     static void matrixEventCb(lv_event_t* event);
     static void flashTimerCb(lv_timer_t* timer);
 };

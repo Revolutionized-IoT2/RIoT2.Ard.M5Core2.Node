@@ -120,19 +120,24 @@ protected:
         lv_obj_set_height(headerBlock, LV_SIZE_CONTENT);
         lv_obj_remove_flag(headerBlock, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_flex_flow(headerBlock, LV_FLEX_FLOW_COLUMN);
-        lv_obj_set_flex_align(headerBlock, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        // START/START: keeps the block pinned top-left rather than centered,
+        // per-view content below still centers itself independently.
+        lv_obj_set_flex_align(headerBlock, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
         lv_obj_set_style_pad_top(headerBlock, 4, 0);
         lv_obj_set_style_pad_bottom(headerBlock, 4, 0);
+        lv_obj_set_style_pad_left(headerBlock, 8, 0);
 
         if (header.length() > 0) {
             lv_obj_t* headerLabel = lv_label_create(headerBlock);
             lv_label_set_text(headerLabel, header.c_str());
             lv_obj_set_style_text_font(headerLabel, &lv_font_montserrat_18_bpp8, 0);
+            lv_obj_set_style_text_align(headerLabel, LV_TEXT_ALIGN_LEFT, 0);
         }
         if (subHeader.length() > 0) {
             lv_obj_t* subHeaderLabel = lv_label_create(headerBlock);
             lv_label_set_text(subHeaderLabel, subHeader.c_str());
             lv_obj_set_style_text_color(subHeaderLabel, lv_color_hex(0x909090), 0);
+            lv_obj_set_style_text_align(subHeaderLabel, LV_TEXT_ALIGN_LEFT, 0);
         }
 
         lv_obj_t* content = lv_obj_create(parent);

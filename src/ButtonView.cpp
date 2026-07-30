@@ -7,7 +7,6 @@
 
 namespace {
 constexpr uint32_t kFlashMs = 200;
-constexpr lv_coord_t kMatrixHeight = 70;
 const lv_color_t kActiveColor = AppColors::indigo();
 }  // namespace
 
@@ -65,7 +64,9 @@ void ButtonView::buildUi(lv_obj_t* parent) {
 
     _matrix = lv_buttonmatrix_create(content);
     lv_obj_set_width(_matrix, lv_pct(100));
-    lv_obj_set_height(_matrix, kMatrixHeight);
+    // Grow to fill whatever vertical space content (the header-less area
+    // below the header block) has left, instead of a fixed height.
+    lv_obj_set_flex_grow(_matrix, 1);
     lv_buttonmatrix_set_map(_matrix, _map.data());
     // CLICK_TRIG makes each button behave like a tap-to-fire lv_button
     // (event on release-inside), rather than firing as soon as pressed.
@@ -76,6 +77,12 @@ void ButtonView::buildUi(lv_obj_t* parent) {
     for (size_t i = 0; i < _slots.size(); ++i) {
         _slots[i].btnId = static_cast<uint32_t>(i);
     }
+
+    // Needs real (pct-resolved) pixel sizes to know each button's share of
+    // the matrix width - lv_obj_update_layout() forces that resolution now
+    // rather than waiting for the next lv_timer_handler() pass.
+    lv_obj_update_layout(_matrix);
+    wrapLongButtonLabels();
 }
 
 void ButtonView::onCommand(const Command& command) {
@@ -97,6 +104,47 @@ void ButtonView::applyVisualState(uint32_t btnId, bool active) {
         lv_buttonmatrix_set_button_ctrl(_matrix, btnId, LV_BUTTONMATRIX_CTRL_CHECKED);
     } else {
         lv_buttonmatrix_clear_button_ctrl(_matrix, btnId, LV_BUTTONMATRIX_CTRL_CHECKED);
+    }
+}
+
+void ButtonView::wrapLongButtonLabels() {
+    if (_matrix == nullptr || _slots.empty()) {
+        return;
+    }
+    // Rough per-button share of the matrix's content width - ignores the
+    // small inter-button gap, which is fine for a "does this overflow"
+    // estimate.
+    int32_t buttonWidth = lv_obj_get_content_width(_matrix) / static_cast<int32_t>(_slots.size());
+    const lv_font_t* font = lv_obj_get_style_text_font(_matrix, LV_PART_ITEMS);
+    constexpr int32_t kHorizontalPad = 8;  // items' left+right text padding, approximated
+
+    for (auto& label : _buttonLabels) {
+        lv_point_t size;
+        lv_text_get_size(&size, label.c_str(), font, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        if (size.x <= buttonWidth - kHorizontalPad) {
+            continue;
+        }
+
+        // Break at the space closest to the middle of the label - this
+        // rewrites a single character in place (no length change), so the
+        // char* already cached in _map by lv_buttonmatrix_set_map() stays
+        // valid; a literal '\n' here is just a line break within one
+        // button's text, unlike a "\n" map entry (which starts a new row).
+        int mid = static_cast<int>(label.length()) / 2;
+        int breakAt = -1;
+        for (int offset = 0; offset <= mid; ++offset) {
+            if (mid - offset >= 0 && label[mid - offset] == ' ') {
+                breakAt = mid - offset;
+                break;
+            }
+            if (mid + offset < static_cast<int>(label.length()) && label[mid + offset] == ' ') {
+                breakAt = mid + offset;
+                break;
+            }
+        }
+        if (breakAt > 0) {
+            label.setCharAt(breakAt, '\n');
+        }
     }
 }
 
