@@ -3,11 +3,17 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
-// One reusable overlay drawn on lv_layer_top() (always above whatever the
-// active tab is showing), used for AlertView/NotificationView inbound-
-// command popups. (The idle-timeout screen is a separate full-screen
-// MatrixRainView overlay, not this one - see ScreenPowerPolicy.) Two
-// dismiss behaviors:
+// One reusable, full-screen overlay drawn on lv_layer_top() (always above
+// whatever the active tab - and the MatrixRainView idle animation - is
+// showing; showCommon() also raises it to the very top of lv_layer_top()'s
+// stacking order on every show*() call, so it can never end up rendered
+// underneath MatrixRainView regardless of creation order), used for
+// AlertView/NotificationView inbound-command popups. Deliberately covers
+// the whole display rather than a small floating box, since these must
+// always be clearly seen even if the node was idle/dimmed - see
+// ScreenPowerPolicy::wakeForAlert(), called before every show*() from
+// main.cpp's viewManager.onPopup() handler, which forces the display
+// awake/undimmed and hides MatrixRainView first. Two dismiss behaviors:
 //   - showAlert(): stays until the user taps it (mirrors an incoming
 //     command the user must acknowledge).
 //   - showNotification(): auto-dismisses after autoDismissMs, with an
@@ -31,6 +37,7 @@ private:
     lv_obj_t* _container = nullptr;
     lv_obj_t* _titleLabel = nullptr;
     lv_obj_t* _messageLabel = nullptr;
+    lv_obj_t* _hintLabel = nullptr;
     lv_obj_t* _bar = nullptr;
     lv_anim_t _dismissAnim;
 

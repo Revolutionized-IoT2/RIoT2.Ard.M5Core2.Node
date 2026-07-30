@@ -371,8 +371,13 @@ void setup() {
 
     // Bridges every view's showPopup() call into the single shared
     // PopupOverlay - ViewManager itself never needs to know PopupOverlay
-    // exists (see ViewManager::onPopup()'s doc comment).
+    // exists (see ViewManager::onPopup()'s doc comment). Alerts/
+    // notifications must always be seen, so wakeForAlert() forces the
+    // display on and hides the idle MatrixRainView overlay first - see its
+    // doc comment for why that's separate from ScreenPowerPolicy's own
+    // input-driven wake().
     viewManager.onPopup([](const PopupRequest& request) {
+        screenPowerPolicy.wakeForAlert();
         if (request.autoDismiss) {
             popupOverlay.showNotification(request.title, request.message, request.autoDismissMs);
         } else {

@@ -1,37 +1,56 @@
 #include "PopupOverlay.h"
 
+#include <M5Unified.h>
+
 #include "AppColors.h"
+#include "lv_font_montserrat_18_bpp8.h"
 
 namespace {
-constexpr int32_t kWidth = 260;
-constexpr int32_t kHeight = 160;
 constexpr uint32_t kDismissAnimTag = 1;
 }  // namespace
 
 void PopupOverlay::begin() {
+    int32_t screenWidth = M5.Display.width();
+    int32_t screenHeight = M5.Display.height();
+
     _container = lv_obj_create(lv_layer_top());
-    lv_obj_set_size(_container, kWidth, kHeight);
-    lv_obj_center(_container);
+    lv_obj_remove_style_all(_container);
+    lv_obj_set_size(_container, screenWidth, screenHeight);
+    lv_obj_set_pos(_container, 0, 0);
     lv_obj_set_style_bg_color(_container, lv_color_hex(0x202020), 0);
     lv_obj_set_style_bg_opa(_container, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(_container, AppColors::indigoAccent2(), 0);
-    lv_obj_set_style_border_width(_container, 2, 0);
-    lv_obj_set_style_radius(_container, 8, 0);
+    lv_obj_set_style_border_width(_container, 4, 0);
+    lv_obj_set_style_pad_all(_container, 24, 0);
+    lv_obj_add_flag(_container, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(_container, LV_OBJ_FLAG_SCROLLABLE);
 
     _titleLabel = lv_label_create(_container);
+    lv_obj_set_width(_titleLabel, screenWidth - 48);
+    lv_label_set_long_mode(_titleLabel, LV_LABEL_LONG_MODE_WRAP);
+    lv_obj_set_style_text_font(_titleLabel, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_color(_titleLabel, lv_color_white(), 0);
     lv_obj_set_style_text_align(_titleLabel, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(_titleLabel, LV_ALIGN_TOP_MID, 0, 10);
+    lv_obj_align(_titleLabel, LV_ALIGN_TOP_MID, 0, 24);
 
     _messageLabel = lv_label_create(_container);
     lv_label_set_long_mode(_messageLabel, LV_LABEL_LONG_MODE_WRAP);
-    lv_obj_set_width(_messageLabel, kWidth - 40);
+    lv_obj_set_width(_messageLabel, screenWidth - 48);
+    lv_obj_set_style_text_font(_messageLabel, &lv_font_montserrat_18_bpp8, 0);
+    lv_obj_set_style_text_color(_messageLabel, AppColors::indigoLighten5(), 0);
     lv_obj_set_style_text_align(_messageLabel, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(_messageLabel, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_align(_messageLabel, LV_ALIGN_CENTER, 0, 0);
+
+    _hintLabel = lv_label_create(_container);
+    lv_label_set_text(_hintLabel, "Tap anywhere to dismiss");
+    lv_obj_set_style_text_color(_hintLabel, lv_color_hex(0x909090), 0);
+    lv_obj_set_style_text_align(_hintLabel, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(_hintLabel, LV_ALIGN_BOTTOM_MID, 0, -24);
 
     _bar = lv_bar_create(_container);
     lv_bar_set_range(_bar, 0, 100);
-    lv_obj_set_size(_bar, kWidth - 40, 10);
-    lv_obj_align(_bar, LV_ALIGN_BOTTOM_MID, 0, -10);
+    lv_obj_set_size(_bar, screenWidth - 80, 14);
+    lv_obj_align(_bar, LV_ALIGN_BOTTOM_MID, 0, -24);
 
     lv_obj_add_flag(_container, LV_OBJ_FLAG_HIDDEN);
 }
@@ -40,14 +59,20 @@ void PopupOverlay::showCommon(const String& title, const String& message) {
     lv_anim_delete(_bar, barAnimExecCb);
     lv_obj_remove_event_cb(_container, tapToDismissCb);
     lv_obj_add_flag(_bar, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(_hintLabel, LV_OBJ_FLAG_HIDDEN);
 
     lv_label_set_text(_titleLabel, title.c_str());
     lv_label_set_text(_messageLabel, message.c_str());
     lv_obj_remove_flag(_container, LV_OBJ_FLAG_HIDDEN);
+    // Guarantees this is always the topmost lv_layer_top() child - e.g. the
+    // MatrixRainView idle overlay, created after this one in setup(), would
+    // otherwise render on top and hide this popup entirely.
+    lv_obj_move_foreground(_container);
 }
 
 void PopupOverlay::showAlert(const String& title, const String& message) {
     showCommon(title, message);
+    lv_obj_remove_flag(_hintLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_event_cb(_container, tapToDismissCb, LV_EVENT_CLICKED, this);
 }
 

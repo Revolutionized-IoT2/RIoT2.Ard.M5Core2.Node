@@ -70,3 +70,14 @@ void ScreenPowerPolicy::wake() {
     M5.Display.setBrightness(kActiveBrightness);
     _state = State::Active;
 }
+
+void ScreenPowerPolicy::wakeForAlert() {
+    if (_state == State::Asleep) {
+        Serial.println("[ScreenPower] -> Active (alert)");
+        M5.Display.wakeup();
+    }
+    _matrixRainView.stop();
+    M5.Display.setBrightness(kActiveBrightness);
+    _state = State::Active;
+    _lastActivityMs = millis();
+}

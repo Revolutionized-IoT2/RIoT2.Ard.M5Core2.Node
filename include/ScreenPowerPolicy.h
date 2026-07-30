@@ -33,6 +33,17 @@ public:
     // the still-visible idle overlay.
     bool loop();
 
+    // Forces the display fully on (waking it up if asleep, undimming it if
+    // idle) and hides the MatrixRainView idle overlay, without touching
+    // PopupOverlay - call this right before showing an incoming
+    // alert/notification popup (see main.cpp's viewManager.onPopup handler)
+    // so it's never rendered underneath the idle animation or while the
+    // panel itself is powered off. Unlike wake(), deliberately does NOT
+    // dismiss whatever PopupOverlay is about to show/is showing, and resets
+    // the inactivity timer so the freshly-woken screen doesn't immediately
+    // re-idle out from under the still-visible popup.
+    void wakeForAlert();
+
 private:
     enum class State { Active, Idle, Asleep };
 
