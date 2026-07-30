@@ -238,7 +238,13 @@ void NavigationController::buildMenuOverlay() {
     lv_obj_set_size(_menuGrid, LV_PCT(100), LV_PCT(85));
     lv_obj_align(_menuGrid, LV_ALIGN_BOTTOM_MID, 0, -4);
     lv_obj_set_flex_flow(_menuGrid, LV_FLEX_FLOW_ROW_WRAP);
-    lv_obj_set_flex_align(_menuGrid, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    // Track (3rd) alignment must be START, not CENTER: with ROW_WRAP the
+    // track axis is vertical - the same axis this container scrolls on
+    // once tiles overflow it. CENTER there makes LVGL's flex layout vertically
+    // center the rows around the rest scroll position, so scrolling toward
+    // the top fights the layout's own re-centering and snaps back to the
+    // middle instead of reaching the first row.
+    lv_obj_set_flex_align(_menuGrid, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
     lv_obj_set_style_pad_row(_menuGrid, 6, 0);
     lv_obj_set_style_pad_column(_menuGrid, 6, 0);
     // Tiles are direct children handling their own LV_EVENT_CLICKED (see
