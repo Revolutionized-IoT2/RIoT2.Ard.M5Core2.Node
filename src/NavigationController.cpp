@@ -358,6 +358,13 @@ void NavigationController::updateMenuHighlight() {
             lv_obj_remove_state(_menuTiles[i].tile, LV_STATE_CHECKED);
         }
     }
+
+    // Virtual-button navigation (moveMenuSelection()) has no pointer/touch
+    // event of its own to trigger LVGL's usual scroll-on-focus behavior, so
+    // the grid never follows the selection unless done explicitly here.
+    if (_menuSelectedIndex >= 0 && _menuSelectedIndex < static_cast<int>(_menuTiles.size())) {
+        lv_obj_scroll_to_view(_menuTiles[_menuSelectedIndex].tile, LV_ANIM_ON);
+    }
 }
 
 void NavigationController::centerActiveTabButton() {
