@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "AppColors.h"
 #include "ViewFactory.h"
 
 namespace {
@@ -11,7 +12,7 @@ constexpr int32_t kRotation = 135;  // 3-o'clock offset for the gauge's start ti
 // Negative needle length = "radius - |needle_length|" (see lv_scale_set_line_needle_value()),
 // so the needle scales with kGaugeSize instead of needing a hardcoded absolute length.
 constexpr int32_t kNeedleLength = -30;
-const lv_color_t kNeedleColor = lv_color_hex(0x2060C0);
+const lv_color_t kNeedleColor = AppColors::indigoDarken2();
 }  // namespace
 
 void EnergyGaugeView::begin(const DeviceConfiguration& config) {

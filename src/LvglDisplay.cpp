@@ -3,6 +3,8 @@
 #include <M5Unified.h>
 #include <esp_heap_caps.h>
 
+#include "AppColors.h"
+
 namespace {
 // LVGL 9.x no longer honors the old v8-style LV_TICK_CUSTOM /
 // LV_TICK_CUSTOM_INCLUDE / LV_TICK_CUSTOM_SYS_TIME_EXPR macros in lv_conf.h
@@ -84,6 +86,17 @@ void LvglDisplay::begin() {
     // compositing against stale/partial buffer content (see the comment
     // above on why that's a real risk for the reported color fringing).
     lv_display_set_buffers(_display, _buf1, _buf2, bufBytes, LV_DISPLAY_RENDER_MODE_FULL);
+
+    // lv_display_create() above already auto-inits LVGL's default theme
+    // (blue primary/red secondary - see lv_display.c) since nothing has
+    // called lv_theme_default_init() yet at that point. Re-running it here
+    // with this node's indigo color scheme (see AppColors.h) re-derives
+    // every default-themed widget style (buttons, switches, sliders, bars,
+    // checked states, ...) from indigo instead, without every view needing
+    // its own explicit color override.
+    lv_theme_t* theme = lv_theme_default_init(_display, AppColors::indigo(), AppColors::indigoAccent2(),
+                                               /*dark=*/false, LV_FONT_DEFAULT);
+    lv_display_set_theme(_display, theme);
 
     _indev = lv_indev_create();
     lv_indev_set_type(_indev, LV_INDEV_TYPE_POINTER);

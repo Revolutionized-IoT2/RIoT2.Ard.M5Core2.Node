@@ -10,15 +10,15 @@ extern const lv_image_dsc_t icon_alert;
 extern const lv_image_dsc_t icon_ble;
 extern const lv_image_dsc_t icon_button;
 extern const lv_image_dsc_t icon_clock;
-extern const lv_image_dsc_t icon_colorscheme;
+extern const lv_image_dsc_t icon_gauge;
+extern const lv_image_dsc_t icon_light;
 extern const lv_image_dsc_t icon_notification;
-extern const lv_image_dsc_t icon_percentage;
-extern const lv_image_dsc_t icon_rfid;
-extern const lv_image_dsc_t icon_sceneselector;
+extern const lv_image_dsc_t icon_percent;
+extern const lv_image_dsc_t icon_scene;
 extern const lv_image_dsc_t icon_slider;
+extern const lv_image_dsc_t icon_switch;
 extern const lv_image_dsc_t icon_timer;
-extern const lv_image_dsc_t icon_toggle;
-extern const lv_image_dsc_t icon_value;
+extern const lv_image_dsc_t icon_values;
 
 #ifdef __cplusplus
 }

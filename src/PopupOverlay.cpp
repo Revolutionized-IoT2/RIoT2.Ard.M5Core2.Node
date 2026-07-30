@@ -1,5 +1,7 @@
 #include "PopupOverlay.h"
 
+#include "AppColors.h"
+
 namespace {
 constexpr int32_t kWidth = 260;
 constexpr int32_t kHeight = 160;
@@ -12,7 +14,7 @@ void PopupOverlay::begin() {
     lv_obj_center(_container);
     lv_obj_set_style_bg_color(_container, lv_color_hex(0x202020), 0);
     lv_obj_set_style_bg_opa(_container, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_color(_container, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_color(_container, AppColors::indigoAccent2(), 0);
     lv_obj_set_style_border_width(_container, 2, 0);
     lv_obj_set_style_radius(_container, 8, 0);
 

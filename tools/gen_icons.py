@@ -1,11 +1,21 @@
 from PIL import Image
-import glob, os
+import os
 
-src_dir = r"C:\Src\RIoT2\RIoT2.Ard.M5Dial.Node\Assets\icons"
+src_dir = r"C:\Src\RIoT2\RIoT2.Ard.M5Core2.Node\assets\icons"
 out_c = r"C:\Src\RIoT2\RIoT2.Ard.M5Core2.Node\src\Icons.c"
 out_h = r"C:\Src\RIoT2\RIoT2.Ard.M5Core2.Node\include\Icons.h"
 
-files = sorted(glob.glob(os.path.join(src_dir, "*.png")))
+# Only the icons actually wired up in NavigationController's
+# iconForClassFullName() are embedded here - assets/icons has several extra
+# icons (CamIndoor, CamOut, Hub, Motion, RFID, Shield, ShieldLock, Sliders,
+# Thermostat, Touch, ...) with no matching View yet; they're kept as source
+# PNGs for future use but not compiled in, to avoid spending flash on
+# images nothing currently references.
+names = [
+    "Alert", "BLE", "Button", "Clock", "Gauge", "Light",
+    "Notification", "Percent", "Scene", "Slider", "Switch", "Timer", "Values",
+]
+files = [os.path.join(src_dir, name + ".png") for name in names]
 
 def ident(stem):
     return "icon_" + stem.lower()

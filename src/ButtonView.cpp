@@ -2,12 +2,13 @@
 
 #include <memory>
 
+#include "AppColors.h"
 #include "ViewFactory.h"
 
 namespace {
 constexpr uint32_t kFlashMs = 200;
 constexpr lv_coord_t kMatrixHeight = 70;
-const lv_color_t kActiveColor = lv_color_hex(0x2060C0);
+const lv_color_t kActiveColor = AppColors::indigo();
 }  // namespace
 
 void ButtonView::begin(const DeviceConfiguration& config) {

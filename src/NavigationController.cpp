@@ -1,5 +1,6 @@
 #include "NavigationController.h"
 
+#include "AppColors.h"
 #include "Icons.h"
 #include "lv_font_montserrat_18_bpp8.h"
 
@@ -10,41 +11,44 @@ constexpr lv_coord_t kMenuTileHeight = 96;
 // The bottom tab bar's own background - deliberately darker than every
 // view's (theme-default light) background so the bar reads as a distinct
 // navigation chrome element instead of blending into whichever view is
-// currently showing above it.
-const lv_color_t kTabBarBgColor = lv_color_hex(0x16181D);
+// currently showing above it. Darkest indigo shade (see AppColors.h)
+// instead of a neutral dark gray, so the bar still reads as part of the
+// node's overall indigo color scheme rather than a generic dark chrome bar.
+const lv_color_t kTabBarBgColor = AppColors::indigoDarken4();
 
 // Text color for non-active tab buttons - the tab bar's dark background
 // (see kTabBarBgColor) makes the theme's default dark-on-light button text
-// unreadable, so unchecked tabs get an explicit muted light gray instead.
-const lv_color_t kTabInactiveTextColor = lv_color_hex(0xA0A4AC);
+// unreadable, so unchecked tabs get an explicit muted light indigo instead.
+const lv_color_t kTabInactiveTextColor = AppColors::indigoLighten4();
 
-// Active-tab highlight color - deliberately a different hue than the blue
-// used elsewhere for interactive accents (e.g. ButtonView's kActiveColor,
-// the main menu's checked-tile highlight) so the bottom nav's "you are
-// here" indicator doesn't read as just another button.
-const lv_color_t kTabActiveColor = lv_color_hex(0x00BFA5);
+// Active-tab highlight color - a bright indigo accent so it still pops
+// against the dark indigo tab bar background even though both are the same
+// hue family, distinguishing the "you are here" indicator by brightness
+// rather than by using an unrelated hue.
+const lv_color_t kTabActiveColor = AppColors::indigoAccent2();
 
 // Maps a DeviceConfiguration's classFullName (e.g.
 // "RIoT2.Ard.M5Core2.Node.ButtonView") to the icon asset (see Icons.h,
-// converted from RIoT2.Ard.M5Dial.Node/Assets/icons) that best represents
-// it. Returns nullptr for view types with no matching icon (e.g.
-// EnergyGaugeView) - callers fall back to a plain text tile in that case.
+// converted from this project's own assets/icons) that best represents it.
+// Returns nullptr for view types with no matching icon - callers fall back
+// to a plain text tile in that case.
 const lv_image_dsc_t* iconForClassFullName(const String& classFullName) {
     // Longer/more-specific suffixes are checked first so e.g. "ButtonView"
     // doesn't accidentally match something like "ToggleButtonView" (not a
     // real class here, but keeps this robust either way).
-    if (classFullName.endsWith("ColorSchemeView")) return &icon_colorscheme;
-    if (classFullName.endsWith("SceneSelectorView")) return &icon_sceneselector;
+    if (classFullName.endsWith("ColorSchemeView")) return &icon_light;
+    if (classFullName.endsWith("SceneSelectorView")) return &icon_scene;
     if (classFullName.endsWith("ButtonView")) return &icon_button;
     if (classFullName.endsWith("ClockView")) return &icon_clock;
-    if (classFullName.endsWith("PercentageView")) return &icon_percentage;
+    if (classFullName.endsWith("PercentageView")) return &icon_percent;
     if (classFullName.endsWith("SliderView")) return &icon_slider;
     if (classFullName.endsWith("TimerView")) return &icon_timer;
-    if (classFullName.endsWith("ToggleView")) return &icon_toggle;
-    if (classFullName.endsWith("ValueView")) return &icon_value;
+    if (classFullName.endsWith("ToggleView")) return &icon_switch;
+    if (classFullName.endsWith("ValueView")) return &icon_values;
     if (classFullName.endsWith("BLEView")) return &icon_ble;
     if (classFullName.endsWith("AlertView")) return &icon_alert;
     if (classFullName.endsWith("NotificationView")) return &icon_notification;
+    if (classFullName.endsWith("EnergyGaugeView")) return &icon_gauge;
     return nullptr;
 }
 }  // namespace
@@ -272,16 +276,16 @@ void NavigationController::setMenuEntries(std::vector<MenuEntry> entries) {
         lv_obj_set_size(tile, kMenuTileWidth, kMenuTileHeight);
         lv_obj_set_flex_flow(tile, LV_FLEX_FLOW_COLUMN);
         lv_obj_set_flex_align(tile, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-        lv_obj_set_style_bg_color(tile, lv_color_hex(0xF2F2F2), 0);
-        lv_obj_set_style_border_color(tile, lv_color_hex(0xC0C0C0), 0);
+        lv_obj_set_style_bg_color(tile, AppColors::indigoLighten5(), 0);
+        lv_obj_set_style_border_color(tile, AppColors::indigoLighten3(), 0);
         lv_obj_set_style_border_width(tile, 1, 0);
-        // Highlight the virtual-button-selected tile with a solid blue
+        // Highlight the virtual-button-selected tile with a solid indigo
         // border/background instead of the theme's low-contrast default
         // checked style - same rationale as addTab()'s tab-button override
         // above.
-        lv_obj_set_style_border_color(tile, lv_palette_main(LV_PALETTE_BLUE), LV_STATE_CHECKED);
+        lv_obj_set_style_border_color(tile, AppColors::indigo(), LV_STATE_CHECKED);
         lv_obj_set_style_border_width(tile, 3, LV_STATE_CHECKED);
-        lv_obj_set_style_bg_color(tile, lv_palette_lighten(LV_PALETTE_BLUE, 4), LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(tile, AppColors::indigoLighten4(), LV_STATE_CHECKED);
 
         const lv_image_dsc_t* icon = iconForClassFullName(entry.classFullName);
         if (icon) {
