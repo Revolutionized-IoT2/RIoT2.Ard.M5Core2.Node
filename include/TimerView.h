@@ -7,7 +7,7 @@
 
 // Countdown egg-timer with three phases (mirrors M5Dial.Node's TimerView's
 // state machine, minus the encoder): Setting (lv_spinbox minute picker +/-
-// buttons + Start button) -> Running (read-only lv_arc counting down,
+// buttons + Start button) -> Running (read-only lv_bar counting down,
 // ticked by an lv_timer every second, + Cancel button) -> Done ("Time's up!"
 // + Dismiss button, optionally beeping a non-blocking "egg ring" pattern).
 // Publishes Report{id, "0"} exactly once on completion.
@@ -42,7 +42,7 @@ private:
     lv_obj_t* _runningContainer = nullptr;
     lv_obj_t* _doneContainer = nullptr;
     lv_obj_t* _spinbox = nullptr;
-    lv_obj_t* _countdownArc = nullptr;
+    lv_obj_t* _countdownBar = nullptr;
     lv_obj_t* _countdownLabel = nullptr;
 
     lv_timer_t* _tickTimer = nullptr;

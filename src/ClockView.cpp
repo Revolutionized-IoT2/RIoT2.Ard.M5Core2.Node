@@ -37,7 +37,7 @@ void ClockView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     _timeLabel = lv_label_create(parent);
-    lv_obj_set_style_text_font(_timeLabel, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_font(_timeLabel, &lv_font_montserrat_48, 0);
 
     _dateLabel = lv_label_create(parent);
 

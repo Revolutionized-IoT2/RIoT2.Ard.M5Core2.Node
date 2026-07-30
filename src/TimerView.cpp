@@ -10,7 +10,8 @@ namespace {
 constexpr uint32_t kTickMs = 1000;
 constexpr int kRingCount = 6;                  // number of beeps in the "egg timer ring" pattern
 constexpr uint32_t kRingIntervalMs = 260;       // spacing between those beeps
-constexpr lv_coord_t kArcSize = 160;
+constexpr lv_coord_t kBarWidth = 220;
+constexpr lv_coord_t kBarHeight = 24;
 constexpr lv_coord_t kSpinboxButtonSize = 40;
 }  // namespace
 
@@ -99,11 +100,10 @@ void TimerView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_flow(_runningContainer, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(_runningContainer, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    _countdownArc = lv_arc_create(_runningContainer);
-    lv_obj_set_size(_countdownArc, kArcSize, kArcSize);
-    lv_obj_remove_flag(_countdownArc, LV_OBJ_FLAG_CLICKABLE);
-    _countdownLabel = lv_label_create(_countdownArc);
-    lv_obj_center(_countdownLabel);
+    _countdownBar = lv_bar_create(_runningContainer);
+    lv_obj_set_size(_countdownBar, kBarWidth, kBarHeight);
+    lv_obj_remove_flag(_countdownBar, LV_OBJ_FLAG_CLICKABLE);
+    _countdownLabel = lv_label_create(_runningContainer);
 
     lv_obj_t* cancelButton = lv_button_create(_runningContainer);
     lv_obj_t* cancelLabel = lv_label_create(cancelButton);
@@ -168,8 +168,8 @@ void TimerView::start() {
     _totalSeconds = _minutes * 60;
     _startMs = millis();
     _ringsRemaining = 0;
-    lv_arc_set_range(_countdownArc, 0, _totalSeconds);
-    lv_arc_set_value(_countdownArc, _totalSeconds);
+    lv_bar_set_range(_countdownBar, 0, _totalSeconds);
+    lv_bar_set_value(_countdownBar, _totalSeconds, LV_ANIM_OFF);
     updateCountdown();
 
     showPhase(Phase::Running);
@@ -220,7 +220,7 @@ void TimerView::updateCountdown() {
         remaining = 0;
     }
 
-    lv_arc_set_value(_countdownArc, static_cast<int32_t>(remaining));
+    lv_bar_set_value(_countdownBar, static_cast<int32_t>(remaining), LV_ANIM_OFF);
 
     int mm = static_cast<int>(remaining / 60);
     int ss = static_cast<int>(remaining % 60);

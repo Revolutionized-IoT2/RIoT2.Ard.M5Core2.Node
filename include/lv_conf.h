@@ -96,6 +96,9 @@
 // remains every other widget's font.
 #define LV_FONT_MONTSERRAT_24 1
 
+// Extra-large size for ClockView's time label.
+#define LV_FONT_MONTSERRAT_48 1
+
 // NOTE: LV_FONT_UNSCII_16 was tried here as an anti-aliasing A/B test and
 // reverted - it rendered corrupted/overlapping glyphs on this display
 // (not just a different style), so bpp=1 bitmap fonts are not a viable
