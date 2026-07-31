@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "ViewFactory.h"
 
 namespace {
@@ -55,10 +57,34 @@ void PercentageView::arcReleasedCb(lv_event_t* event) {
 }
 
 namespace {
+DeviceConfiguration buildPercentageViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Percentage View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.PercentageView";
+
+    CommandTemplate cmd;
+    cmd.id = riot2::newId();
+    cmd.type = "2";
+    cmd.name = "Percentage";
+    cmd.address = "dimmer-1";
+    cmd.valueType = 2;
+    config.commandTemplates.push_back(cmd);
+
+    ReportTemplate report;
+    report.id = riot2::newId();
+    report.type = "2";
+    report.name = "Percentage";
+    report.address = "dimmer-1";
+    config.reportTemplates.push_back(report);
+    return config;
+}
+
 struct PercentageViewRegistrar {
     PercentageViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.PercentageView",
-                                                 []() { return std::make_unique<PercentageView>(); });
+                                                 []() { return std::make_unique<PercentageView>(); },
+                                                 buildPercentageViewTemplate);
     }
 } percentageViewRegistrar;
 }  // namespace

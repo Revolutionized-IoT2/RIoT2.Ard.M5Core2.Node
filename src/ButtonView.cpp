@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "AppColors.h"
 #include "ViewFactory.h"
 
@@ -171,10 +173,37 @@ void ButtonView::flashTimerCb(lv_timer_t* timer) {
 }
 
 namespace {
+DeviceConfiguration buildButtonViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Button View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.ButtonView";
+    config.deviceParameters = {{"header", "Buttons"}, {"subHeader", "tap a button"}};
+
+    for (const char* address : {"btn-1", "btn-2"}) {
+        CommandTemplate cmd;
+        cmd.id = riot2::newId();
+        cmd.type = "0";
+        cmd.name = String("Button ") + address;
+        cmd.address = address;
+        cmd.valueType = 0;
+        config.commandTemplates.push_back(cmd);
+
+        ReportTemplate report;
+        report.id = riot2::newId();
+        report.type = "0";
+        report.name = String("Button ") + address;
+        report.address = address;
+        config.reportTemplates.push_back(report);
+    }
+    return config;
+}
+
 struct ButtonViewRegistrar {
     ButtonViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ButtonView",
-                                                 []() { return std::make_unique<ButtonView>(); });
+                                                 []() { return std::make_unique<ButtonView>(); },
+                                                 buildButtonViewTemplate);
     }
 } buttonViewRegistrar;
 }  // namespace

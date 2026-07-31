@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "AppColors.h"
 #include "ViewFactory.h"
 
@@ -75,10 +77,28 @@ void EnergyGaugeView::onCommand(const Command& command) {
 }
 
 namespace {
+DeviceConfiguration buildEnergyGaugeViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Energy Gauge View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.EnergyGaugeView";
+    config.deviceParameters = {{"unit", "W"}, {"min", "0"}, {"max", "3000"}};
+
+    CommandTemplate cmd;
+    cmd.id = riot2::newId();
+    cmd.type = "2";
+    cmd.name = "Power";
+    cmd.address = "power-1";
+    cmd.valueType = 2;
+    config.commandTemplates.push_back(cmd);
+    return config;
+}
+
 struct EnergyGaugeViewRegistrar {
     EnergyGaugeViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.EnergyGaugeView",
-                                                 []() { return std::make_unique<EnergyGaugeView>(); });
+                                                 []() { return std::make_unique<EnergyGaugeView>(); },
+                                                 buildEnergyGaugeViewTemplate);
     }
 } energyGaugeViewRegistrar;
 }  // namespace

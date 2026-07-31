@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <riot2/Uuid.h>
+
 #include "ViewFactory.h"
 
 namespace {
@@ -11,6 +13,15 @@ namespace {
 // has synced; treat anything before 2020-01-01 as "not yet synced".
 constexpr time_t kMinValidEpoch = 1577836800;
 constexpr uint32_t kTickMs = 1000;
+
+DeviceConfiguration buildClockViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Clock View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.ClockView";
+    config.deviceParameters = {{"timezone", "EET-2EEST,M3.5.0/3,M10.5.0/4"}};
+    return config;
+}
 }  // namespace
 
 ClockView::~ClockView() {
@@ -75,7 +86,7 @@ namespace {
 struct ClockViewRegistrar {
     ClockViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ClockView",
-                                                 []() { return std::make_unique<ClockView>(); });
+                                                 []() { return std::make_unique<ClockView>(); }, buildClockViewTemplate);
     }
 } clockViewRegistrar;
 }  // namespace

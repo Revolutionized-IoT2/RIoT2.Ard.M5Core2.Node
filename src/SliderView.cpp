@@ -2,10 +2,36 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "ViewFactory.h"
 
 namespace {
 constexpr lv_coord_t kSliderWidth = 220;
+
+DeviceConfiguration buildSliderViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Slider View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.SliderView";
+    config.deviceParameters = {{"min", "0"}, {"max", "100"}, {"step", "1"}, {"unit", ""}};
+
+    CommandTemplate cmd;
+    cmd.id = riot2::newId();
+    cmd.type = "2";
+    cmd.name = "Slider";
+    cmd.address = "slider-1";
+    cmd.valueType = 2;
+    config.commandTemplates.push_back(cmd);
+
+    ReportTemplate report;
+    report.id = riot2::newId();
+    report.type = "2";
+    report.name = "Slider";
+    report.address = "slider-1";
+    config.reportTemplates.push_back(report);
+    return config;
+}
 }  // namespace
 
 void SliderView::begin(const DeviceConfiguration& config) {
@@ -72,7 +98,7 @@ namespace {
 struct SliderViewRegistrar {
     SliderViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.SliderView",
-                                                 []() { return std::make_unique<SliderView>(); });
+                                                 []() { return std::make_unique<SliderView>(); }, buildSliderViewTemplate);
     }
 } sliderViewRegistrar;
 }  // namespace

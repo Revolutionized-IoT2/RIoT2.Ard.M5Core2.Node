@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "Buzzer.h"
 #include "HapticFeedback.h"
 #include "ViewFactory.h"
@@ -285,8 +287,31 @@ void TimerView::dismissButtonTappedCb(lv_event_t* event) {
 namespace {
 struct TimerViewRegistrar {
     TimerViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.TimerView",
-                                                 []() { return std::make_unique<TimerView>(); });
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.TimerView", []() { return std::make_unique<TimerView>(); }, [] {
+                DeviceConfiguration config;
+                config.id = riot2::newId();
+                config.name = "Timer View";
+                config.classFullName = "RIoT2.Ard.M5Core2.Node.TimerView";
+                config.deviceParameters = {
+                    {"defaultMinutes", "5"}, {"stepMinutes", "1"}, {"maxMinutes", "60"}, {"beepOnComplete", "false"}};
+
+                CommandTemplate cmd;
+                cmd.id = riot2::newId();
+                cmd.type = "2";
+                cmd.name = "Timer";
+                cmd.address = "timer-1";
+                cmd.valueType = 0;
+                config.commandTemplates.push_back(cmd);
+
+                ReportTemplate report;
+                report.id = riot2::newId();
+                report.type = "2";
+                report.name = "Timer";
+                report.address = "timer-1";
+                config.reportTemplates.push_back(report);
+                return config;
+            });
     }
 } timerViewRegistrar;
 }  // namespace

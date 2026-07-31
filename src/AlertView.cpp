@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "Buzzer.h"
 #include "HapticFeedback.h"
 #include "ViewFactory.h"
@@ -65,10 +67,26 @@ void AlertView::onCommand(const Command& command) {
 }
 
 namespace {
+DeviceConfiguration buildAlertViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Alert View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.AlertView";
+
+    CommandTemplate cmd;
+    cmd.id = riot2::newId();
+    cmd.type = "3";
+    cmd.name = "Alert";
+    cmd.address = "alert-1";
+    cmd.valueType = 3;  // Entity - value is { title, message, soundEnabled }
+    config.commandTemplates.push_back(cmd);
+    return config;
+}
+
 struct AlertViewRegistrar {
     AlertViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.AlertView",
-                                                 []() { return std::make_unique<AlertView>(); });
+                                                 []() { return std::make_unique<AlertView>(); }, buildAlertViewTemplate);
     }
 } alertViewRegistrar;
 }  // namespace

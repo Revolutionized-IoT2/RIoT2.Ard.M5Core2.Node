@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "ViewFactory.h"
 
 void ToggleView::begin(const DeviceConfiguration& config) {
@@ -80,10 +82,35 @@ void ToggleView::switchToggledCb(lv_event_t* event) {
 }
 
 namespace {
+DeviceConfiguration buildToggleViewTemplate() {
+    DeviceConfiguration config;
+    config.id = riot2::newId();
+    config.name = "Toggle View";
+    config.classFullName = "RIoT2.Ard.M5Core2.Node.ToggleView";
+
+    for (const char* address : {"relay-1", "relay-2"}) {
+        CommandTemplate cmd;
+        cmd.id = riot2::newId();
+        cmd.type = "0";
+        cmd.name = String("Toggle ") + address;
+        cmd.address = address;
+        cmd.valueType = 0;
+        config.commandTemplates.push_back(cmd);
+
+        ReportTemplate report;
+        report.id = riot2::newId();
+        report.type = "0";
+        report.name = String("Toggle ") + address;
+        report.address = address;
+        config.reportTemplates.push_back(report);
+    }
+    return config;
+}
+
 struct ToggleViewRegistrar {
     ToggleViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ToggleView",
-                                                 []() { return std::make_unique<ToggleView>(); });
+                                                 []() { return std::make_unique<ToggleView>(); }, buildToggleViewTemplate);
     }
 } toggleViewRegistrar;
 }  // namespace

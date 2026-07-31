@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <riot2/Uuid.h>
+
 #include "ViewFactory.h"
 
 namespace {
@@ -270,7 +272,29 @@ namespace {
 struct ColorSchemeViewRegistrar {
     ColorSchemeViewRegistrar() {
         ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ColorSchemeView",
-                                                 []() { return std::make_unique<ColorSchemeView>(); });
+                                                 []() { return std::make_unique<ColorSchemeView>(); },
+                                                 []() {
+                                                     DeviceConfiguration config;
+                                                     config.id = riot2::newId();
+                                                     config.name = "Color Scheme View";
+                                                     config.classFullName = "RIoT2.Ard.M5Core2.Node.ColorSchemeView";
+
+                                                     CommandTemplate cmd;
+                                                     cmd.id = riot2::newId();
+                                                     cmd.type = "1";
+                                                     cmd.name = "Color";
+                                                     cmd.address = "lamp-1";
+                                                     cmd.valueType = 1;  // Text - hex color string, e.g. "#FF8800"
+                                                     config.commandTemplates.push_back(cmd);
+
+                                                     ReportTemplate report;
+                                                     report.id = riot2::newId();
+                                                     report.type = "1";
+                                                     report.name = "Color";
+                                                     report.address = "lamp-1";
+                                                     config.reportTemplates.push_back(report);
+                                                     return config;
+                                                 });
     }
 } colorSchemeViewRegistrar;
 }  // namespace
