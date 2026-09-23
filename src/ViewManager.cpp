@@ -1,6 +1,7 @@
 #include "ViewManager.h"
 
 #include <riot2/PeripheralFactory.h>
+#include <riot2/BleScanner.h>
 
 #include "ViewFactory.h"
 
@@ -37,6 +38,10 @@ void ViewManager::rebuild(const NodeConfiguration& nodeConfiguration, Navigation
             view->buildUi(tab);
             menuEntries.push_back({deviceConfig.name, deviceConfig.classFullName,
                                     static_cast<uint32_t>(menuEntries.size())});
+        }
+
+        if (view->consumesBleEvents()) {
+            view->onBleSnapshot(BleScanner::instance().snapshot());
         }
 
         Entry entry;

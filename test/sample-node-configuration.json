@@ -170,7 +170,7 @@
       "name": "Porch Relay (Grove)",
       "classFullName": "RIoT2.Ard.M5Core2.Node.GpioPeripheral",
       "commandTemplates": [
-        { "id": "porch-relay-grove-cmd", "type": 0, "name": "Porch Relay", "address": "B2", "model": false }
+        { "id": "porch-relay-grove-cmd", "type": 0, "name": "Porch Relay", "address": "B1", "model": false }
       ]
     }
   ]

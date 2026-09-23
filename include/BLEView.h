@@ -39,6 +39,7 @@ public:
     void buildUi(lv_obj_t* parent) override;
 
     bool consumesBleEvents() const override { return true; }
+    void onBleSnapshot(const std::vector<BleDeviceInfo>& devices) override;
     void onBleDeviceDiscovered(const BleDeviceInfo& device) override;
     void onBleDeviceLost(const String& address) override;
     void onBleAdvertisement(const BleAdvertisement& advertisement) override;

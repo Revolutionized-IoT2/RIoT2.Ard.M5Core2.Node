@@ -138,6 +138,11 @@ void BLEView::refreshList() {
     }
 }
 
+void BLEView::onBleSnapshot(const std::vector<BleDeviceInfo>& devices) {
+    _devices = devices;
+    refreshList();
+}
+
 void BLEView::onBleDeviceDiscovered(const BleDeviceInfo& device) {
     _devices.push_back(device);
     refreshList();

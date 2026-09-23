@@ -9,6 +9,7 @@
 #include <riot2/BleScanner.h>
 #include <riot2/Command.h>
 #include <riot2/ConfigTemplateServer.h>
+#include <riot2/ConfigurationRetry.h>
 #include <riot2/GpioPeripheral.h>
 #include <riot2/MqttConnection.h>
 #include <riot2/NodeConfig.h>
@@ -64,7 +65,7 @@ constexpr int kScrollSuppressDistancePx = 12;
 // board-agnostic - see riot2/GpioPeripheral.h). B2/GPIO36 is input-only
 // (ADC1_CH0) - GpioPeripheral::begin() logs a warning if a commandTemplate
 // ever targets it as an OUTPUT.
-constexpr GpioPinMap kM5Core2GroveMap{32, 33, 26, 36};
+constexpr GpioPinMap kM5Core2GroveMap{32, 33, 26, 36, 0x07};
 
 enum class AppMode { Provisioning, Normal };
 
@@ -119,11 +120,10 @@ bool touchWasScrollLike = false;
 bool bleActive = false;
 
 // Set by handleConfigurationMessage() when riot2/node/{id}/configuration
-// arrives, and consumed once from the top-level loop() rather than being
+// arrives, and retried from the top-level loop() rather than being
 // acted on immediately inside the MQTT callback - see the identical pattern
 // (and its rationale) in RIoT2.Ard.M5Dial.Node/src/main.cpp.
-bool pendingConfigFetch = false;
-String pendingApiBaseUrl;
+ConfigurationRetry configurationRetry;
 
 void handleCommand(const String& topic, const String& payload) {
     JsonDocument doc;
@@ -193,8 +193,7 @@ void handleConfigurationMessage(const String& topic, const String& payload) {
     // blocking HTTP GET run synchronously inside PubSubClient's own callback
     // dispatch starves its keepalive/socket processing and can drop the MQTT
     // connection right as the fetch completes.
-    pendingApiBaseUrl = apiBaseUrl;
-    pendingConfigFetch = true;
+    configurationRetry.request(apiBaseUrl);
 
     if (!tabsInitialized) {
         splashView.setConfigStatus("Config: fetching from Orchestrator...");
@@ -309,7 +308,7 @@ void setup() {
             cmd.id = riot2::newId();
             cmd.type = "0";
             cmd.name = "Porch Relay";
-            cmd.address = "B2";
+            cmd.address = "B1";
             cmd.valueType = 0;
             config.commandTemplates.push_back(cmd);
             return config;
@@ -467,11 +466,10 @@ void loop() {
 
     // Runs the (blocking) configuration fetch requested by
     // handleConfigurationMessage(), outside of mqtt.loop()'s own callback
-    // dispatch - see the pendingConfigFetch comment above.
-    if (pendingConfigFetch) {
-        pendingConfigFetch = false;
-        orchestratorClient.requestConfiguration(pendingApiBaseUrl, config.id);
-    }
+    // dispatch. Failed attempts retry with bounded backoff while Wi-Fi is up.
+    configurationRetry.loop(wifi.isConnected(), [](const String& url) {
+        return orchestratorClient.requestConfiguration(url, config.id);
+    });
 
     peripheralManager.loop();
 
