@@ -1,5 +1,6 @@
 #include "ButtonView.h"
 
+#include <algorithm>
 #include <memory>
 
 #include <riot2/Uuid.h>
@@ -12,7 +13,19 @@ constexpr uint32_t kFlashMs = 200;
 const lv_color_t kActiveColor = AppColors::indigo();
 }  // namespace
 
+ButtonView::~ButtonView() {
+    cancelFlashTimers();
+}
+
+void ButtonView::cancelFlashTimers() {
+    for (auto* timer : _flashTimers) {
+        lv_timer_delete(timer);
+    }
+    _flashTimers.clear();
+}
+
 void ButtonView::begin(const DeviceConfiguration& config) {
+    cancelFlashTimers();
     _slots.clear();
     _header = findParameter(config.deviceParameters, "header", config.name);
     _subHeader = findParameter(config.deviceParameters, "subHeader", "");
@@ -164,11 +177,14 @@ void ButtonView::matrixEventCb(lv_event_t* event) {
     // settle back to whatever the last inbound command says it should be.
     self->applyVisualState(btnId, true);
     lv_timer_t* timer = lv_timer_create(flashTimerCb, kFlashMs, slot);
+    self->_flashTimers.push_back(timer);
     lv_timer_set_repeat_count(timer, 1);
 }
 
 void ButtonView::flashTimerCb(lv_timer_t* timer) {
     auto* slot = static_cast<Slot*>(lv_timer_get_user_data(timer));
+    auto& timers = slot->owner->_flashTimers;
+    timers.erase(std::remove(timers.begin(), timers.end(), timer), timers.end());
     slot->owner->applyVisualState(slot->btnId, slot->active);
 }
 

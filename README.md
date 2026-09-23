@@ -41,6 +41,14 @@ pio run
 Or in VS Code with the PlatformIO extension installed: open this folder, then use the
 **PlatformIO: Build** command (checkmark icon in the status bar).
 
+### Host regression tests
+
+With Python and a native C++ compiler available (a Visual Studio developer shell
+on Windows), run `python ..\RIoT2.Ard.Shared\tests\test_firmware_p1.py`.
+The Core2 regression checks that pending button-flash timers are cancelled when
+a view is destroyed or reinitialized, including multiple taps and normal expiry.
+These deterministic tests use fake LVGL timers, not a board or network.
+
 ## Flash to the Core2
 
 1. Connect the Core2 to your computer via USB-C.
