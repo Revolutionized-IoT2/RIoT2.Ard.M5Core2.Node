@@ -89,8 +89,8 @@ reset), the Core2 starts its own Wi-Fi access point and a captive-portal web for
 
 1. Power on the Core2. The screen shows a QR code (scan it to jump straight to the setup page)
    along with the AP name (`RIoT2-Setup-XXXX`) and setup URL as text.
-2. From a phone or laptop, connect to that Wi-Fi network (or scan the QR code, which encodes the
-   setup page's URL directly).
+2. From a phone or laptop, connect to that open Wi-Fi network (or scan the QR code, which encodes
+   the setup page's URL directly).
 3. Fill in the form:
    - **Id** — a unique node identifier (GUID) for this device.
    - **WifiSsid** / **WifiPassword** — your home/office Wi-Fi credentials.
@@ -144,10 +144,12 @@ Once a node is online, it doesn't need to be re-flashed over USB for future upda
 operator/orchestrator can publish the following to the node's `riot2/node/{id}/command` topic:
 
 ```json
-{ "id": "system.ota", "value": "http://host/path/to/firmware.bin" }
+{ "id": "system.ota", "value": "https://host/path/to/firmware.bin" }
 ```
 
 The node downloads and flashes the binary from that URL and reboots automatically on success.
+HTTPS URLs are validated with `RIOT2_ROOT_CA_PEM` when configured; without a root CA the firmware
+logs a warning and falls back to an insecure TLS connection. Plain HTTP still works for lab use.
 
 ## Troubleshooting
 

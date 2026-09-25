@@ -5,3 +5,6 @@
 .vscode/ipch
 /.vs
 /.vscode
+
+# PlatformIO device-monitor logs
+logs/
