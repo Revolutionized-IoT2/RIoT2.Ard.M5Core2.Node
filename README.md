@@ -1,168 +1,118 @@
 # RIoT2.Ard.M5Core2.Node
 
-Firmware for the [M5Stack Core2](https://docs.m5stack.com/en/core/core2) acting as a **Node**
-in the [RIoT2](../RIoT2.Core) ecosystem. It connects to Wi-Fi and MQTT, announces itself to the
-RIoT2 Orchestrator, downloads its device configuration, and renders an [LVGL](https://lvgl.io/)
-touchscreen UI for viewing and controlling remote devices (lights, scenes, sensors, etc.) via
-MQTT reports/commands.
+PlatformIO/Arduino firmware for the [M5Stack Core2](https://docs.m5stack.com/en/core/core2) as a
+RIoT2 device node. It connects to Wi-Fi and MQTT, announces itself to the orchestrator, fetches
+device configuration and renders an LVGL touchscreen UI for views such as buttons, sliders,
+timers, scenes, BLE and RFID-derived peripherals.
 
-Almost all non-UI logic (Wi-Fi, MQTT, provisioning, orchestrator handshake, OTA, peripherals, BLE
-scanning) lives in the sibling [RIoT2.Ard.Shared](../RIoT2.Ard.Shared) library, shared with
-[RIoT2.Ard.M5Dial.Node](../RIoT2.Ard.M5Dial.Node) — see that project's README for the shared
-protocol/MQTT contracts in more detail. This project only adds the Core2-specific pieces: LVGL UI,
-touch-button navigation, and the vibration motor.
+Most connectivity and protocol code lives in
+[RIoT2.Ard.Shared](https://github.com/Revolutionized-IoT2/RIoT2.Ard.Shared). This repository owns
+the Core2-specific LVGL UI, touchscreen navigation, screen power policy, QR setup screen,
+vibration feedback and Grove pin map.
 
-## Prerequisites
+## Hardware and prerequisites
 
-- [PlatformIO](https://platformio.org/) — either the [VS Code extension](https://platformio.org/install/ide?install=vscode)
-  or the standalone `pio` CLI.
-- A USB-C cable and an [M5Stack Core2](https://docs.m5stack.com/en/core/core2) device.
-- The sibling [RIoT2.Ard.Shared](../RIoT2.Ard.Shared) directory checked out alongside this one
-  (referenced via `lib_extra_dirs = ../RIoT2.Ard.Shared` in [platformio.ini](platformio.ini) —
-  no separate build step needed, PlatformIO compiles it as part of this project's build).
-- (Windows) USB-serial drivers for the Core2's CP2104 USB-to-UART chip if your OS doesn't detect
-  the device automatically — see M5Stack's [driver download page](https://docs.m5stack.com/en/download).
+- M5Stack Core2 and USB-C cable.
+- PlatformIO, either the VS Code extension or CLI.
+- The sibling [RIoT2.Ard.Shared](https://github.com/Revolutionized-IoT2/RIoT2.Ard.Shared)
+  repository checked out next to this one.
+- Windows USB-serial drivers if the Core2 is not detected automatically.
 
-No manual library installation is required — PlatformIO resolves all dependencies
-(`m5stack/M5Unified`, `lvgl/lvgl`, `PubSubClient`, `ArduinoJson`, `NimBLE-Arduino`, plus
-core-bundled ESP32 libraries) from [platformio.ini](platformio.ini) on first build.
+PlatformIO restores libraries from [platformio.ini](platformio.ini): `M5Unified`, `lvgl`,
+`PubSubClient`, `ArduinoJson` and `NimBLE-Arduino`.
 
 ## Build
 
-Using the PlatformIO CLI:
+Run from the workspace root (`C:\Src\RIoT2`) in PowerShell:
 
 ```powershell
-# If `pio` isn't on your PATH (common on Windows), use the full path instead:
-# & "$env:USERPROFILE\.platformio\penv\Scripts\pio.exe" run
-
-pio run
+$pio = "$env:USERPROFILE\.platformio\penv\Scripts\pio.exe"
+& $pio run -d .\RIoT2.Ard.M5Core2.Node
 ```
 
-Or in VS Code with the PlatformIO extension installed: open this folder, then use the
-**PlatformIO: Build** command (checkmark icon in the status bar).
+The firmware image is produced under `.pio\build\m5stack-core2\firmware.bin`.
 
-### Host regression tests
+To upload only when a device is connected and you intend to flash it:
 
-With Python and a native C++ compiler available (a Visual Studio developer shell
-on Windows), run `python ..\RIoT2.Ard.Shared\tests\test_firmware_p1.py`.
-The Core2 regression checks that pending button-flash timers are cancelled when
-a view is destroyed or reinitialized, including multiple taps and normal expiry.
-These deterministic tests use fake LVGL timers, not a board or network.
+```powershell
+& $pio run -d .\RIoT2.Ard.M5Core2.Node -t upload
+& $pio device monitor -d .\RIoT2.Ard.M5Core2.Node
+```
 
-Run `python ..\RIoT2.Ard.Shared\tests\test_firmware_p2.py` for P2 regression checks.
-The generated relay template uses B1/GPIO26. B2/GPIO36 remains available as an input;
-attempts to configure it as an output are logged and ignored without driving the pin.
-Configuration fetches retry with capped backoff, MQTT rejects oversized JSON instead of
-truncating it, and rebuilt BLE views silently restore currently present devices. See the
-shared README's bounded firmware policies for limits and reporting semantics.
+Host regressions are in the shared repository:
 
-## Flash to the Core2
+```powershell
+Set-Location C:\Src\RIoT2\RIoT2.Ard.Shared
+python .\tests\test_firmware_p1.py
+python .\tests\test_firmware_p2.py
+python .\tests\test_firmware_architecture.py
+```
 
-1. Connect the Core2 to your computer via USB-C.
-2. Build and upload in one step:
+## First boot provisioning
 
-   ```powershell
-   pio run -t upload
-   ```
+The firmware ships without Wi-Fi or MQTT credentials. On first boot, or after factory reset, it
+starts an open setup access point named `RIoT2-Setup-XXXX`. The Core2 screen shows the setup URL
+and a QR code.
 
-   If PlatformIO can't auto-detect the serial port, list available ports and pass one explicitly:
+Connect to the setup AP and open `http://192.168.4.1/`. The portal stores:
 
-   ```powershell
-   pio device list
-   pio run -t upload --upload-port COM5
-   ```
-3. (Optional) Open the serial monitor to watch boot/connection logs (115200 baud):
+- node id and name;
+- Wi-Fi SSID and password;
+- MQTT URL, username and password;
+- MQTT TLS flag;
+- vibration feedback flag.
 
-   ```powershell
-   pio device monitor
-   ```
-4. Or do build + upload + monitor in one step:
+Settings are stored in ESP32 NVS namespace `riot2node`; see the hub
+[firmware settings contract](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md#firmware-m5core2-m5dial).
 
-   ```powershell
-   pio run -t upload -t monitor
-   ```
+To factory-reset provisioning, hold **BtnA and BtnC together** for about five seconds.
 
-## First boot: provisioning
+## UI and operation
 
-The firmware ships with no Wi-Fi/MQTT credentials baked in. On first boot (or after a factory
-reset), the Core2 starts its own Wi-Fi access point and a captive-portal web form:
+- LVGL renders one tab per configured view with a bottom virtual button strip.
+- `BtnA` selects the previous tab, `BtnC` selects the next tab and `BtnB` dismisses a popup or
+  returns to the first tab.
+- Hold `BtnB` for about three seconds to toggle diagnostics.
+- After one minute of no touch/button input, the screen dims and shows Matrix Rain. After four
+  minutes, the panel sleeps. The first wake input is swallowed.
+- The vibration motor is enabled by the provisioning setting and is separate from per-command sound.
+- The Core2 Grove map is A1/GPIO32, A2/GPIO33, B1/GPIO26 and B2/GPIO36. B2 is input-only; output
+  attempts are logged and ignored.
 
-1. Power on the Core2. The screen shows a QR code (scan it to jump straight to the setup page)
-   along with the AP name (`RIoT2-Setup-XXXX`) and setup URL as text.
-2. From a phone or laptop, connect to that open Wi-Fi network (or scan the QR code, which encodes
-   the setup page's URL directly).
-3. Fill in the form:
-   - **Id** — a unique node identifier (GUID) for this device.
-   - **WifiSsid** / **WifiPassword** — your home/office Wi-Fi credentials.
-   - **MqttServerUrl** — address of your MQTT broker.
-   - **MqttUsername** / **MqttPassword** — MQTT broker credentials (if required).
-   - **Enable TLS for MQTT** — checkbox; connects over `WiFiClientSecure` on port 8883 instead of
-     plaintext when checked.
-   - **Enable vibration feedback** — checkbox; gates the vibration motor (see below). Checked by
-     default.
-4. Submit the form. The device saves the configuration to flash (NVS) and restarts into normal
-   operation, connecting to your Wi-Fi and MQTT broker and then to the RIoT2 Orchestrator.
+## OTA
 
-To re-enter provisioning later (e.g. to change networks), perform a **factory reset**: press and
-hold **BtnA and BtnC together** (the leftmost and rightmost touch zones at the bottom of the
-screen — Core2 has no single physical "boot button") for about 5 seconds. This clears the stored
-configuration and restarts the device back into the setup flow.
-
-## Navigation
-
-The Core2's 320×240 touchscreen renders one tab per configured device/view, swipeable
-left/right (LVGL's native `lv_tabview` gesture) with a bottom tab bar. Three touch zones at the
-very bottom of the screen act as virtual buttons (no physical buttons on the Core2 body itself):
-
-| Button | Action |
-| --- | --- |
-| **BtnA** | Previous tab |
-| **BtnB** | Dismiss an active popup (alert/notification), otherwise jump to the first tab |
-| **BtnC** | Next tab |
-
-Alerts and notifications (from an inbound `AlertView`/`NotificationView` command) render as a
-popup overlay above the current tab rather than taking over navigation.
-
-## Screen power management
-
-After 1 minute of no touch/button activity, the display dims and shows a full-screen
-"digital rain" animation as an idle overlay; after 4 minutes of total inactivity it goes to
-sleep (`M5.Display.sleep()`). Any touch or button press wakes it back up — a wake-only
-touch/button press is swallowed (it won't also change tabs).
-
-## Vibration feedback
-
-The Core2's built-in vibration motor pulses alongside the existing buzzer tone for confirm/error/
-alert/timer events, gated by the **Enable vibration feedback** setting from provisioning
-(`NodeConfig.vibrateEnabled`, default on). Unlike the buzzer tone (which a command can silence per
-message via its own `soundEnabled` field), vibration is a separate physical modality and is only
-ever gated by this device-level setting.
-
-## Updating firmware over the air (OTA)
-
-Once a node is online, it doesn't need to be re-flashed over USB for future updates — an
-operator/orchestrator can publish the following to the node's `riot2/node/{id}/command` topic:
+Firmware OTA is triggered by an MQTT command to `riot2/node/{id}/command`:
 
 ```json
 { "id": "system.ota", "value": "https://host/path/to/firmware.bin" }
 ```
 
-The node downloads and flashes the binary from that URL and reboots automatically on success.
-HTTPS URLs are validated with `RIOT2_ROOT_CA_PEM` when configured; without a root CA the firmware
-logs a warning and falls back to an insecure TLS connection. Plain HTTP still works for lab use.
+`system.ota` is reserved for firmware and is handled before view dispatch. HTTPS downloads use the
+compiled `RIOT2_ROOT_CA_PEM` when present; otherwise the firmware logs a warning and uses insecure
+TLS.
 
 ## Troubleshooting
 
-- **Upload fails / port not found:** confirm the correct COM port with `pio device list`, and
-  make sure no other program (serial monitor, another IDE) has the port open.
-- **Device boots but stays on the QR/setup screen:** it has no valid stored configuration —
-  complete the provisioning flow above.
-- **Stuck on "WiFi: connecting..." / "MQTT: connecting...":** double-check the credentials
-  entered during provisioning (factory reset and re-provision if needed).
-- **Screen stays dark / won't wake:** tap anywhere on the touchscreen, or tap one of the three
-  BtnA/B/C zones at the bottom edge.
-- **LVGL settings (fonts, QR code support, etc.) don't seem to apply:** confirm
-  [platformio.ini](platformio.ini) still has `-Iinclude` in `build_flags` — without it,
-  `-DLV_CONF_INCLUDE_SIMPLE` silently fails to find [include/lv_conf.h](include/lv_conf.h) for
-  LVGL's own library sources (not just this project's own `src/*.cpp`), and every `LV_*` setting
-  falls back to its default.
+- **Upload fails or the port isn't found:** find the COM port with `& $pio device list`. Make
+  sure no other program (a serial monitor or another IDE) has the port open.
+- **The device stays on the QR/setup screen:** it has no valid stored configuration. Complete the
+  provisioning above.
+- **Stuck on "WiFi: connecting..." or "MQTT: connecting...":** check the credentials entered
+  during provisioning. If needed, factory-reset and provision again.
+- **The screen stays dark:** tap the touchscreen, or one of the three button zones at the
+  bottom edge.
+- **LVGL settings (fonts, QR support, …) don't apply:** `platformio.ini` must keep `-Iinclude`
+  in `build_flags`. Without it, `-DLV_CONF_INCLUDE_SIMPLE` can't find `include/lv_conf.h` for
+  LVGL's own sources, and every `LV_*` setting silently falls back to its default.
+## Contracts and links
+
+- [MQTT topics and payloads](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mqtt-topics.md)
+- [Firmware configuration subset](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/configuration.md#firmware-subset)
+- [Firmware HTTP behavior](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/http-api.md#firmware-riot2ardshared)
+- [Architecture overview](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/architecture/overview.md)
+- AI coding instructions: [AGENTS.md](AGENTS.md)
+- Release notes: [CHANGELOG.md](CHANGELOG.md)
+
+## License
+
+See [LICENSE](LICENSE).
