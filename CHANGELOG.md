@@ -4,6 +4,15 @@ All notable documentation changes to `RIoT2.Ard.M5Core2.Node`.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-14
+
+Shared node runtime ([I18](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i18-firmware-noderuntime-m)). No behaviour change intended: the node lifecycle (settings,
+provisioning, Wi-Fi, MQTT, configuration fetch and retry, templates, SNTP, OTA, peripherals and the
+BLE start-up) now comes from RIoT2.Ard.Shared's `riot2::NodeRuntime`, the same code on both boards.
+
+- Changed: `main.cpp` keeps board setup, the UI and the runtime hooks; the touch gestures moved to
+  `TouchGestures` and the peripheral registration to `BoardPeripherals`.
+
 ## [0.3.0] - 2026-10-14
 
 Shared view models ([I17](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i17-firmware-view-models-m)). The twelve views both boards have keep their look and

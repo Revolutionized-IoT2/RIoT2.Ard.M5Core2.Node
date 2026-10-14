@@ -59,7 +59,9 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 | `include/ScreenPowerPolicy.h`, `src/ScreenPowerPolicy.cpp` | Dim, Matrix Rain idle and display sleep behavior |
 | `include/HapticFeedback.h`, `src/HapticFeedback.cpp` | Vibration feedback implementation |
 | `include/Rfid2Peripheral.h`, `src/Rfid2Peripheral.cpp` | Core2 RFID-to-peripheral bridge |
-| `src/main.cpp` | Board setup, provisioning UI, MQTT/configuration/OTA wiring and main loop |
+| `src/main.cpp` | Board setup, splash/provisioning/diagnostics UI, `NodeRuntimeHooks` and the main loop |
+| `include/TouchGestures.h`, `src/TouchGestures.cpp` | Scroll-vs-tap tracking for the virtual buttons, BtnA+BtnC factory reset |
+| `include/BoardPeripherals.h`, `src/BoardPeripherals.cpp` | Grove pin map and peripheral registration (GPIO, RFID2) |
 
 ## Contracts consumed here
 
@@ -80,8 +82,11 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
   sources need the include path to see `include/lv_conf.h`.
 - Do not use B2/GPIO36 as an output. `GpioPinMap` marks only A1, A2 and B1 output-capable.
 - Do not assign `system.ota` to a view command template.
-- Keep `OtaRollback::begin()` first in `setup()`, and `OtaRollback::markHealthy()` right after a
-  successful `requestConfiguration()` in `loop()` (see RIoT2.Ard.Shared). Don't change the pinned
+- The node lifecycle (NVS settings, provisioning, Wi-Fi, MQTT, configuration, OTA, peripherals,
+  BLE start) is `riot2::NodeRuntime` in RIoT2.Ard.Shared. `main.cpp` sets up the board, builds the
+  UI and passes `NodeRuntimeHooks`; don't add lifecycle code here, extend the runtime instead.
+- Keep `riot2::NodeRuntime::startOtaTrial()` first in `setup()`; `NodeRuntime` marks the image
+  healthy after the first successful configuration fetch (see RIoT2.Ard.Shared). Don't change the pinned
   `espressif32` platform without checking that its bootloader still has app rollback enabled.
 - Do not edit vendored `.pio\libdeps` content.
 - Do not commit real Wi-Fi, MQTT, node id, broker or certificate values. Use placeholders in docs.
