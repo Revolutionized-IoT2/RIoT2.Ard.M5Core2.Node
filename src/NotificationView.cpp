@@ -77,10 +77,9 @@ DeviceConfiguration buildNotificationViewTemplate() {
 
     CommandTemplate cmd;
     cmd.id = riot2::newId();
-    cmd.type = "3";
+    cmd.type = riot2::ValueType::Entity;  // value is { title, message, soundEnabled }
     cmd.name = "Notification";
     cmd.address = "notice-1";
-    cmd.valueType = 3;  // Entity - value is { title, message, soundEnabled }
     config.commandTemplates.push_back(cmd);
     return config;
 }

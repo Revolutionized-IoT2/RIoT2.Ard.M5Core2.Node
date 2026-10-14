@@ -91,15 +91,14 @@ DeviceConfiguration buildToggleViewTemplate() {
     for (const char* address : {"relay-1", "relay-2"}) {
         CommandTemplate cmd;
         cmd.id = riot2::newId();
-        cmd.type = "0";
+        cmd.type = riot2::ValueType::Boolean;
         cmd.name = String("Toggle ") + address;
         cmd.address = address;
-        cmd.valueType = 0;
         config.commandTemplates.push_back(cmd);
 
         ReportTemplate report;
         report.id = riot2::newId();
-        report.type = "0";
+        report.type = riot2::ValueType::Boolean;
         report.name = String("Toggle ") + address;
         report.address = address;
         config.reportTemplates.push_back(report);

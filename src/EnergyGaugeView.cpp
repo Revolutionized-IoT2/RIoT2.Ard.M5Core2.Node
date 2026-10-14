@@ -86,10 +86,9 @@ DeviceConfiguration buildEnergyGaugeViewTemplate() {
 
     CommandTemplate cmd;
     cmd.id = riot2::newId();
-    cmd.type = "2";
+    cmd.type = riot2::ValueType::Number;
     cmd.name = "Power";
     cmd.address = "power-1";
-    cmd.valueType = 2;
     config.commandTemplates.push_back(cmd);
     return config;
 }

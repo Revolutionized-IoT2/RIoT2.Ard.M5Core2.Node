@@ -188,7 +188,7 @@ DeviceConfiguration buildBLEViewTemplate() {
           std::make_pair("advertisement", "BLE Advertisement")}) {
         ReportTemplate report;
         report.id = riot2::newId();
-        report.type = "1";
+        report.type = riot2::ValueType::Text;
         report.name = entry.second;
         report.address = entry.first;
         report.parameters = {{"allowedAddresses", ""}};

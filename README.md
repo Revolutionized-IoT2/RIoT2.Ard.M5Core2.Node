@@ -91,6 +91,43 @@ Firmware OTA is triggered by an MQTT command to `riot2/node/{id}/command`:
 compiled `RIOT2_ROOT_CA_PEM` when present; otherwise the firmware logs a warning and uses insecure
 TLS.
 
+### Automatic rollback
+
+Since 0.2.0, a new image is on trial until it has connected to Wi-Fi and MQTT and fetched its
+configuration from the orchestrator. If that doesn't happen within 3 minutes, or the image crashes
+or restarts first, the device starts the previous image again. No cable is needed.
+
+- The serial log shows `[OTA] New image in app0 is on trial` (or `app1`), then either `marked valid` or
+  `rolling back`.
+- Keep the orchestrator reachable during an update; an image that can't fetch its configuration
+  rolls back. A device that seems stuck can be power-cycled: an unconfirmed image rolls back too.
+  Don't factory-reset during the trial, for the same reason.
+- A second `system.ota` is refused while an image is on trial, because it would overwrite the
+  previous image that a rollback returns to.
+- The previous image comes back as it was. Rollback protects updates *to* 0.2.0 or later; an older
+  image marks itself valid at boot.
+- The time limit is the build flag `RIOT2_OTA_VERIFY_TIMEOUT_MS` (milliseconds, default 180000).
+
+To test it on a board running 0.2.0 or later:
+
+1. Build a test image that never confirms itself, with a 60-second limit, and serve it on the LAN
+   (from the workspace root, with `$pio` as in [Build](#build)):
+
+   ```powershell
+   $env:PLATFORMIO_BUILD_FLAGS = '-DRIOT2_OTA_TEST_NEVER_HEALTHY -DRIOT2_OTA_VERIFY_TIMEOUT_MS=60000UL'
+   & $pio run -d .\RIoT2.Ard.M5Core2.Node
+   Remove-Item Env:\PLATFORMIO_BUILD_FLAGS
+   python -m http.server 8000 --directory .\RIoT2.Ard.M5Core2.Node\.pio\build\m5stack-core2
+   ```
+
+2. Send `{ "id": "system.ota", "value": "http://<pc>:8000/firmware.bin" }` to the node's command
+   topic, and watch `& $pio device monitor -d .\RIoT2.Ard.M5Core2.Node`.
+3. The new image logs `on trial`, connects and fetches its configuration, logs
+   `RIOT2_OTA_TEST_NEVER_HEALTHY`, and after 60 seconds `rolling back`. The device restarts into
+   the previous image, which comes online again with its old manifest version.
+4. Rebuild without the flags (`& $pio run -d .\RIoT2.Ard.M5Core2.Node`) before you upload firmware
+   for normal use.
+
 ## Troubleshooting
 
 - **Upload fails or the port isn't found:** find the COM port with `& $pio device list`. Make
@@ -104,6 +141,7 @@ TLS.
 - **LVGL settings (fonts, QR support, …) don't apply:** `platformio.ini` must keep `-Iinclude`
   in `build_flags`. Without it, `-DLV_CONF_INCLUDE_SIMPLE` can't find `include/lv_conf.h` for
   LVGL's own sources, and every `LV_*` setting silently falls back to its default.
+
 ## Contracts and links
 
 - [MQTT topics and payloads](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mqtt-topics.md)

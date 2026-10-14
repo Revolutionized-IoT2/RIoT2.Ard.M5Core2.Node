@@ -51,7 +51,7 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 
 | Path | Contents |
 |---|---|
-| `platformio.ini` | `m5stack-core2` environment, C++14 flags, LVGL include flags and shared-library path |
+| `platformio.ini` | `m5stack-core2` environment (platform `espressif32` pinned for OTA rollback), C++14 flags, LVGL include flags and shared-library path |
 | `MANIFEST_NAME`, `VERSION` | Inputs to the shared manifest generation script |
 | `include/lv_conf.h` | LVGL configuration used by library sources through `-Iinclude` |
 | `include/*View.h`, `src/*View.cpp` | Core2 LVGL views and templates |
@@ -80,6 +80,9 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
   sources need the include path to see `include/lv_conf.h`.
 - Do not use B2/GPIO36 as an output. `GpioPinMap` marks only A1, A2 and B1 output-capable.
 - Do not assign `system.ota` to a view command template.
+- Keep `OtaRollback::begin()` first in `setup()`, and `OtaRollback::markHealthy()` right after a
+  successful `requestConfiguration()` in `loop()` (see RIoT2.Ard.Shared). Don't change the pinned
+  `espressif32` platform without checking that its bootloader still has app rollback enabled.
 - Do not edit vendored `.pio\libdeps` content.
 - Do not commit real Wi-Fi, MQTT, node id, broker or certificate values. Use placeholders in docs.
 - Do not flash a device unless the user asks for upload/device validation.
@@ -93,13 +96,13 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 - `BtnB` hold threshold is raised to the diagnostics hold duration so normal clicks are not
   mistaken for diagnostics toggles.
 - Screen wake consumes the first touch/button input when waking from idle or sleep.
-- Firmware template `type` values downloaded from the orchestrator are lost because shared parsing
-  reads `type` as a string while the contract sends a number (configuration divergence C2).
+- A new OTA image rolls back unless it fetches its configuration within 3 minutes
+  ([README](README.md#automatic-rollback)). Restarting or factory-resetting the device during that
+  time rolls it back as well.
+- Template `type` is a number (`riot2::ValueType::Number`, not `"2"`); there is no `valueType`.
 
 ## Related work
 
-- Backlog item [6](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md):
-  OTA rollback policy.
 - Backlog item [15](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md):
   duplicated firmware views and runtime wiring.
 - Optional hardening [S9](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md):
