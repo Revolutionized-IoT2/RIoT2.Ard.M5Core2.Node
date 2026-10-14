@@ -4,6 +4,24 @@ All notable documentation changes to `RIoT2.Ard.M5Core2.Node`.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-14
+
+Shared view models ([I17](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i17-firmware-view-models-m)). The twelve views both boards have keep their look and
+default templates; their logic now lives in RIoT2.Ard.Shared's `riot2::views` models, tested on the
+host, and the views only render them.
+
+- Fixed: a Slider with `max` not above `min` gets the range `min`..`min + 1`, as on the Dial. A
+  command beyond `max` now shows the last step below `max` when `max` is off the `step` grid.
+- Fixed: a Toggle switch or Button without a report id no longer publishes a report with an empty
+  id (and the button doesn't flash).
+- Fixed: a Notification with a negative `durationMs` closes after 4 seconds; it stayed open.
+- Fixed: the Timer's Start, Cancel and Dismiss act only in their own state; Cancel on a finished
+  timer used to show the setting screen while the timer kept ringing. The +/- buttons step through
+  the shared limits.
+- Changed: Percentage and ColorScheme take commands only for their first command template, as on
+  the Dial. ColorScheme reads a `#RRGGBB` value one channel at a time; malformed values give a
+  different color than before.
+
 ## [0.2.0] - 2026-10-14
 
 OTA rollback and numeric template types ([I13](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-0-1.md#i13-firmware-ota-rollback-s)).

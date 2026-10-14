@@ -266,8 +266,7 @@ void NavigationController::setMenuEntries(std::vector<MenuEntry> entries) {
 
     // _menuTiles is fully rebuilt (not resized incrementally) below and
     // never touched again until the next setMenuEntries() call, so its
-    // element addresses stay stable for event user_data - same pattern as
-    // SceneSelectorView's _slots.
+    // element addresses stay stable for event user_data.
     _menuTiles.resize(_menuEntries.size());
     for (size_t i = 0; i < _menuEntries.size(); i++) {
         const MenuEntry& entry = _menuEntries[i];

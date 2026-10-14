@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include <riot2/views/NotificationModel.h>
+
 #include "IView.h"
 
 // Transient popup pushed by an inbound Command (e.g. a heads-up status
@@ -11,11 +13,12 @@
 // "notification" kind, with a countdown bar) instead of requiring a
 // deliberate tap-to-acknowledge.
 //
-// The Command's `value` is expected to be an object with "title" and
-// "message" fields; a plain string is used directly as the message instead.
-// Falls back to a generic "Notification" title / empty message. The
-// auto-dismiss timeout defaults to 4 seconds, overridable via this view's
-// "durationMs" deviceParameter.
+// The Command's `value` is parsed by the shared
+// riot2::views::NotificationModel: an object with "title" and "message"
+// fields, or a plain string used directly as the message. Falls back to a
+// generic "Notification" title / empty message. The auto-dismiss timeout
+// defaults to 4 seconds, overridable via this view's "durationMs"
+// deviceParameter.
 //
 // The Command's `value` object may also include a "soundEnabled" field
 // (default false) controlling whether Buzzer::confirm() plays.
@@ -28,5 +31,5 @@ public:
     bool isAlert() const override { return true; }
 
 private:
-    unsigned long _durationMs = 4000;
+    riot2::views::NotificationModel _model;
 };

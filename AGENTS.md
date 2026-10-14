@@ -54,7 +54,7 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 | `platformio.ini` | `m5stack-core2` environment (platform `espressif32` pinned for OTA rollback), C++14 flags, LVGL include flags and shared-library path |
 | `MANIFEST_NAME`, `VERSION` | Inputs to the shared manifest generation script |
 | `include/lv_conf.h` | LVGL configuration used by library sources through `-Iinclude` |
-| `include/*View.h`, `src/*View.cpp` | Core2 LVGL views and templates |
+| `include/*View.h`, `src/*View.cpp` | Core2 LVGL views and templates; the shared view types render a `riot2::views` model (RIoT2.Ard.Shared), which also builds their template |
 | `include/NavigationController.h`, `src/NavigationController.cpp` | Tab view and bottom virtual-button navigation |
 | `include/ScreenPowerPolicy.h`, `src/ScreenPowerPolicy.cpp` | Dim, Matrix Rain idle and display sleep behavior |
 | `include/HapticFeedback.h`, `src/HapticFeedback.cpp` | Vibration feedback implementation |

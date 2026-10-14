@@ -2,59 +2,17 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "Buzzer.h"
 #include "HapticFeedback.h"
 #include "ViewFactory.h"
 
-namespace {
-// Pulls a human-readable title/message out of a Command's loosely-typed
-// value: a plain string is used as the message directly, an object looks
-// for "title"/"message" (falling back to "text") keys, anything else (or a
-// missing key) falls back to the supplied default.
-String extractField(const JsonVariantConst& value, const char* key, const String& fallback) {
-    if (value.is<JsonObjectConst>()) {
-        JsonObjectConst obj = value.as<JsonObjectConst>();
-        if (obj[key].is<const char*>()) {
-            return obj[key].as<String>();
-        }
-    }
-    return fallback;
-}
-
-String extractMessage(const JsonVariantConst& value, const String& fallback) {
-    if (value.is<const char*>()) {
-        return value.as<String>();
-    }
-    return extractField(value, "message", extractField(value, "text", fallback));
-}
-
-// Reads an optional "soundEnabled" field out of the Command's `value` object.
-// Accepts a real JSON boolean (expected) or a "true"/"false" string, so it
-// tolerates either representation from the orchestrator.
-bool extractSoundEnabled(const JsonVariantConst& value, bool fallback) {
-    if (value.is<JsonObjectConst>()) {
-        JsonVariantConst v = value.as<JsonObjectConst>()["soundEnabled"];
-        if (v.is<bool>()) {
-            return v.as<bool>();
-        }
-        if (v.is<const char*>()) {
-            return String(v.as<const char*>()).equalsIgnoreCase("true");
-        }
-    }
-    return fallback;
-}
-}  // namespace
-
 void AlertView::begin(const DeviceConfiguration& config) {
-    (void)config;
+    _model.begin(config);
 }
 
 void AlertView::onCommand(const Command& command) {
-    String title = extractField(command.value, "title", "Alert");
-    String message = extractMessage(command.value, "");
-    if (extractSoundEnabled(command.value, false)) {
+    _model.onCommand(command);
+    if (_model.soundEnabled()) {
         Buzzer::alert();
     }
     // Unlike the sound above, vibration isn't gated by the command's own
@@ -63,29 +21,15 @@ void AlertView::onCommand(const Command& command) {
     // in main.cpp), so an alert still gets a physical buzz even when a
     // caller has explicitly silenced its tone.
     HapticFeedback::instance().alert();
-    showPopup(PopupRequest{title, message, /*autoDismiss=*/false, 0});
+    showPopup(PopupRequest{_model.title(), _model.message(), /*autoDismiss=*/false, 0});
 }
 
 namespace {
-DeviceConfiguration buildAlertViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Alert View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.AlertView";
-
-    CommandTemplate cmd;
-    cmd.id = riot2::newId();
-    cmd.type = riot2::ValueType::Entity;  // value is { title, message, soundEnabled }
-    cmd.name = "Alert";
-    cmd.address = "alert-1";
-    config.commandTemplates.push_back(cmd);
-    return config;
-}
-
 struct AlertViewRegistrar {
     AlertViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.AlertView",
-                                                 []() { return std::make_unique<AlertView>(); }, buildAlertViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.AlertView", []() { return std::make_unique<AlertView>(); },
+            []() { return riot2::views::AlertModel::buildTemplate("RIoT2.Ard.M5Core2.Node.AlertView"); });
     }
 } alertViewRegistrar;
 }  // namespace

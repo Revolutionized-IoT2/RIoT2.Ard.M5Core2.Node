@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "ViewFactory.h"
 
 namespace {
@@ -30,28 +28,13 @@ constexpr uint32_t kHueWheelStops[7] = {
     0xFF0000,  // 360 red (wraps)
 };
 
-String hexFromRgb(lv_color_t rgb) {
-    char buf[7];
-    snprintf(buf, sizeof(buf), "%02X%02X%02X", rgb.red, rgb.green, rgb.blue);
-    return String(buf);
-}
-
-// Parses a "#RRGGBB" (or "RRGGBB") string into HSV.
-lv_color_hsv_t hexToHsv(const String& hex) {
-    String digits = hex.startsWith("#") ? hex.substring(1) : hex;
-    if (digits.length() < 6) {
-        return lv_color_hsv_t{0, 100, 100};
-    }
-    uint8_t r = static_cast<uint8_t>(strtol(digits.substring(0, 2).c_str(), nullptr, 16));
-    uint8_t g = static_cast<uint8_t>(strtol(digits.substring(2, 4).c_str(), nullptr, 16));
-    uint8_t b = static_cast<uint8_t>(strtol(digits.substring(4, 6).c_str(), nullptr, 16));
-    return lv_color_rgb_to_hsv(r, g, b);
+lv_color_t toLvColor(const riot2::views::ColorSchemeModel::Rgb& rgb) {
+    return lv_color_make(rgb.red, rgb.green, rgb.blue);
 }
 }  // namespace
 
 void ColorSchemeView::begin(const DeviceConfiguration& config) {
-    _commandId = config.commandTemplates.empty() ? String() : config.commandTemplates.front().id;
-    _reportId = config.reportTemplates.empty() ? String() : config.reportTemplates.front().id;
+    _model.begin(config);
 }
 
 void ColorSchemeView::buildUi(lv_obj_t* parent) {
@@ -159,68 +142,54 @@ void ColorSchemeView::buildUi(lv_obj_t* parent) {
     // --- Hex value label ------------------------------------------------
     _hexLabel = lv_label_create(parent);
 
-    setHue(_hue);
-    setSatVal(_sat, _val);
+    showHue();
+    showSatVal();
+    showCurrentColor();
 }
 
-void ColorSchemeView::setHue(int32_t hue) {
-    _hue = LV_CLAMP(0, hue, 359);
-    _svHueGrad.stops[1].color = lv_color_hsv_to_rgb(static_cast<uint16_t>(_hue), 100, 100);
-    lv_obj_invalidate(_svPad);
-
-    repositionHueHandle();
-    updateCurrentColor();
-}
-
-void ColorSchemeView::setSatVal(int32_t sat, int32_t val) {
-    _sat = LV_CLAMP(0, sat, 100);
-    _val = LV_CLAMP(0, val, 100);
-    repositionSvHandle();
-    updateCurrentColor();
-}
-
-void ColorSchemeView::updateCurrentColor() {
-    lv_color_t rgb = lv_color_hsv_to_rgb(static_cast<uint16_t>(_hue), static_cast<uint8_t>(_sat),
-                                         static_cast<uint8_t>(_val));
-    if (_swatch) {
-        lv_obj_set_style_bg_color(_swatch, rgb, 0);
+void ColorSchemeView::showHue() {
+    _svHueGrad.stops[1].color = toLvColor(riot2::views::ColorSchemeModel::hsvToRgb(_model.hue(), 100, 100));
+    if (_svPad) {
+        lv_obj_invalidate(_svPad);
     }
-    if (_hexLabel) {
-        lv_label_set_text(_hexLabel, ("#" + hexFromRgb(rgb)).c_str());
-    }
-}
-
-void ColorSchemeView::repositionSvHandle() {
-    if (!_svHandle) {
-        return;
-    }
-    int32_t x = (_sat * (kPadSize - 1)) / 100;
-    int32_t y = ((100 - _val) * (kPadSize - 1)) / 100;
-    lv_obj_set_pos(_svHandle, x - kSvHandleSize / 2, y - kSvHandleSize / 2);
-}
-
-void ColorSchemeView::repositionHueHandle() {
     if (!_hueHandle) {
         return;
     }
-    int32_t x = (_hue * (kHueBarWidth - 1)) / 359;
+    int32_t x = (_model.hue() * (kHueBarWidth - 1)) / 359;
     lv_obj_set_pos(_hueHandle, x - kHueHandleSize / 2, (kHueBarHeight - kHueHandleSize) / 2);
 }
 
-void ColorSchemeView::publishCurrentColor() {
-    if (_reportId.length() == 0) {
+void ColorSchemeView::showSatVal() {
+    if (!_svHandle) {
         return;
     }
-    lv_color_t rgb = lv_color_hsv_to_rgb(static_cast<uint16_t>(_hue), static_cast<uint8_t>(_sat),
-                                         static_cast<uint8_t>(_val));
-    String hex = "\"#" + hexFromRgb(rgb) + "\"";
-    publishReport(Report{_reportId, hex});
+    int32_t x = (_model.saturation() * (kPadSize - 1)) / 100;
+    int32_t y = ((100 - _model.value()) * (kPadSize - 1)) / 100;
+    lv_obj_set_pos(_svHandle, x - kSvHandleSize / 2, y - kSvHandleSize / 2);
+}
+
+void ColorSchemeView::showCurrentColor() {
+    if (_swatch) {
+        lv_obj_set_style_bg_color(_swatch, toLvColor(_model.color()), 0);
+    }
+    if (_hexLabel) {
+        lv_label_set_text(_hexLabel, _model.hex().c_str());
+    }
+}
+
+void ColorSchemeView::publishCurrentColor() {
+    Report report;
+    if (_model.reportColor(report)) {
+        publishReport(report);
+    }
 }
 
 void ColorSchemeView::onCommand(const Command& command) {
-    lv_color_hsv_t hsv = hexToHsv(command.value.as<String>());
-    setHue(hsv.h);
-    setSatVal(hsv.s, hsv.v);
+    if (_model.onCommand(command)) {
+        showHue();
+        showSatVal();
+        showCurrentColor();
+    }
 }
 
 void ColorSchemeView::svPadTouchCb(lv_event_t* event) {
@@ -239,7 +208,9 @@ void ColorSchemeView::svPadTouchCb(lv_event_t* event) {
     int32_t y = LV_CLAMP(0, p.y - area.y1, height - 1);
     int32_t sat = width > 1 ? (x * 100) / (width - 1) : 0;
     int32_t val = height > 1 ? 100 - (y * 100) / (height - 1) : 100;
-    self->setSatVal(sat, val);
+    self->_model.setSaturationValue(sat, val);
+    self->showSatVal();
+    self->showCurrentColor();
 }
 
 void ColorSchemeView::svPadReleasedCb(lv_event_t* event) {
@@ -260,7 +231,9 @@ void ColorSchemeView::hueBarTouchCb(lv_event_t* event) {
     int32_t width = lv_area_get_width(&area);
     int32_t x = LV_CLAMP(0, p.x - area.x1, width - 1);
     int32_t hue = width > 1 ? (x * 359) / (width - 1) : 0;
-    self->setHue(hue);
+    self->_model.setHue(hue);
+    self->showHue();
+    self->showCurrentColor();
 }
 
 void ColorSchemeView::hueBarReleasedCb(lv_event_t* event) {
@@ -271,30 +244,9 @@ void ColorSchemeView::hueBarReleasedCb(lv_event_t* event) {
 namespace {
 struct ColorSchemeViewRegistrar {
     ColorSchemeViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ColorSchemeView",
-                                                 []() { return std::make_unique<ColorSchemeView>(); },
-                                                 []() {
-                                                     DeviceConfiguration config;
-                                                     config.id = riot2::newId();
-                                                     config.name = "Color Scheme View";
-                                                     config.classFullName = "RIoT2.Ard.M5Core2.Node.ColorSchemeView";
-
-                                                     CommandTemplate cmd;
-                                                     cmd.id = riot2::newId();
-                                                     cmd.type = riot2::ValueType::Text;  // hex color string, e.g. "#FF8800"
-                                                     cmd.name = "Color";
-                                                     cmd.address = "lamp-1";
-                                                     config.commandTemplates.push_back(cmd);
-
-                                                     ReportTemplate report;
-                                                     report.id = riot2::newId();
-                                                     report.type = riot2::ValueType::Text;
-                                                     report.name = "Color";
-                                                     report.address = "lamp-1";
-                                                     config.reportTemplates.push_back(report);
-                                                     return config;
-                                                 });
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.ColorSchemeView", []() { return std::make_unique<ColorSchemeView>(); },
+            []() { return riot2::views::ColorSchemeModel::buildTemplate("RIoT2.Ard.M5Core2.Node.ColorSchemeView"); });
     }
 } colorSchemeViewRegistrar;
 }  // namespace
-

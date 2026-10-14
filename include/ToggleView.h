@@ -5,13 +5,14 @@
 
 #include <vector>
 
+#include <riot2/views/ToggleModel.h>
+
 #include "IView.h"
 
 // 1-2 on/off lv_switch widgets, stacked vertically (a single switch is
-// centered). Toggling a switch publishes its new state as a Report; an
-// inbound Command addressed to the matching commandTemplate.id (correlated
-// via shared `address`, as in ButtonView) sets that switch's state without
-// re-publishing a Report for it.
+// centered), rendering the shared riot2::views::ToggleModel. Toggling a
+// switch publishes its new state as a Report; an inbound Command sets that
+// switch's state without publishing a Report for it.
 class ToggleView : public IView {
 public:
     void begin(const DeviceConfiguration& config) override;
@@ -19,18 +20,18 @@ public:
     void onCommand(const Command& command) override;
 
 private:
-    struct Slot {
-        ReportTemplate report;
-        CommandTemplate command;
-        bool hasCommand = false;
-        lv_obj_t* switchObj = nullptr;
+    struct Row {
         // Back-pointer so the static event callback (which only gets a
-        // Slot*, its registered user_data) can still reach publishReport(),
-        // a protected IView member.
+        // Row*, its registered user_data) can reach the model and
+        // publishReport(), a protected IView member.
         ToggleView* owner = nullptr;
+        size_t index = 0;
+        lv_obj_t* switchObj = nullptr;
     };
 
-    std::vector<Slot> _slots;
+    riot2::views::ToggleModel _model;
+    std::vector<Row> _rows;
 
+    void showState(size_t index);
     static void switchToggledCb(lv_event_t* event);
 };

@@ -3,14 +3,17 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include <riot2/views/TimerModel.h>
+
 #include "IView.h"
 
-// Countdown egg-timer with three phases (mirrors M5Dial.Node's TimerView's
-// state machine, minus the encoder): Setting (lv_spinbox minute picker +/-
-// buttons + Start button) -> Running (read-only lv_bar counting down,
-// ticked by an lv_timer every second, + Cancel button) -> Done ("Time's up!"
-// + Dismiss button, optionally beeping a non-blocking "egg ring" pattern).
-// Publishes Report{id, "0"} exactly once on completion.
+// Countdown egg-timer rendering the shared riot2::views::TimerModel (the
+// same state machine as M5Dial.Node's TimerView, minus the encoder): Setting
+// (lv_spinbox minute picker +/- buttons + Start button) -> Running
+// (read-only lv_bar counting down, ticked by an lv_timer every second, +
+// Cancel button) -> Done ("Time's up!" + Dismiss button, optionally beeping a
+// non-blocking "egg ring" pattern). Publishes Report{id, "0"} exactly once on
+// completion.
 //
 // deviceParameters: "defaultMinutes" (default "5"), "stepMinutes" (default
 // "1"), "maxMinutes" (default "60"), "beepOnComplete" (default "false").
@@ -23,20 +26,7 @@ public:
     void onCommand(const Command& command) override;
 
 private:
-    enum class Phase { Setting, Running, Done };
-
-    String _name;
-    String _commandId;
-    String _reportId;
-    int _stepMinutes = 1;
-    int _maxMinutes = 60;
-    int _minutes = 5;
-    bool _beepOnComplete = false;
-
-    Phase _phase = Phase::Setting;
-    long _totalSeconds = 0;
-    unsigned long _startMs = 0;
-    int _ringsRemaining = 0;
+    riot2::views::TimerModel _model;
 
     lv_obj_t* _settingContainer = nullptr;
     lv_obj_t* _runningContainer = nullptr;
@@ -48,7 +38,8 @@ private:
     lv_timer_t* _tickTimer = nullptr;
     lv_timer_t* _ringTimer = nullptr;
 
-    void showPhase(Phase phase);
+    void showPhase();
+    void adjust(int delta);
     void start();
     void cancel();
     void finish();

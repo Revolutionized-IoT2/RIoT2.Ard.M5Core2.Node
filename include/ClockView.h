@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include <riot2/views/ClockModel.h>
+
 #include "IView.h"
 
 // Shows the current time (and date once SNTP has synced; see
@@ -15,11 +17,10 @@
 // scope (see plan.md Section 4/8); until then it's just a tab like any
 // other view.
 //
-// Supports an optional "timezone" deviceParameter: a POSIX TZ string (e.g.
-// "EET-2EEST,M3.5.0/3,M10.5.0/4" for Helsinki, with full DST support)
-// applied via setenv("TZ", ...)/tzset() so localtime_r() shows local time
-// instead of UTC. If absent, time is shown in UTC (main.cpp's configTime()
-// call has no gmtOffset/DST applied).
+// Supports an optional "timezone" deviceParameter (see
+// riot2::views::ClockModel): a POSIX TZ string (e.g.
+// "EET-2EEST,M3.5.0/3,M10.5.0/4" for Helsinki, with full DST support) so the
+// time is shown in local time instead of UTC.
 class ClockView : public IView {
 public:
     // Deletes _timer explicitly - it's a standalone LVGL timer, not an
@@ -33,6 +34,8 @@ public:
     void buildUi(lv_obj_t* parent) override;
 
 private:
+    riot2::views::ClockModel _model;
+
     lv_obj_t* _timeLabel = nullptr;
     lv_obj_t* _dateLabel = nullptr;
     lv_timer_t* _timer = nullptr;

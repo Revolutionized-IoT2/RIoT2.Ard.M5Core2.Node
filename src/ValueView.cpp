@@ -2,55 +2,24 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "ViewFactory.h"
 
-namespace {
-constexpr size_t kMaxSlots = 4;
-
-DeviceConfiguration buildValueViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Value View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.ValueView";
-    config.deviceParameters = {{"unit1", "\u00b0C"}, {"unit2", "%"}};
-
-    for (const char* label : {"Value 1", "Value 2"}) {
-        CommandTemplate cmd;
-        cmd.id = riot2::newId();
-        cmd.type = riot2::ValueType::Number;
-        cmd.name = label;
-        config.commandTemplates.push_back(cmd);
-    }
-    return config;
-}
-}  // namespace
-
 void ValueView::begin(const DeviceConfiguration& config) {
-    _slots.clear();
-
-    for (size_t i = 0; i < config.commandTemplates.size() && i < kMaxSlots; ++i) {
-        const auto& cmd = config.commandTemplates[i];
-        Slot slot;
-        slot.id = cmd.id;
-        slot.name = cmd.name;
-        slot.unit = findParameter(config.deviceParameters, "unit" + String(i + 1));
-        _slots.push_back(slot);
-    }
+    _model.begin(config);
+    _valueLabels.assign(_model.size(), nullptr);
 }
 
 void ValueView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    if (_slots.empty()) {
+    if (_model.size() == 0) {
         lv_obj_t* emptyLabel = lv_label_create(parent);
         lv_label_set_text(emptyLabel, "No values");
         return;
     }
 
-    for (auto& slot : _slots) {
+    for (size_t i = 0; i < _model.size(); ++i) {
         lv_obj_t* row = lv_obj_create(parent);
         lv_obj_set_width(row, lv_pct(90));
         lv_obj_set_height(row, LV_SIZE_CONTENT);
@@ -60,31 +29,29 @@ void ValueView::buildUi(lv_obj_t* parent) {
         lv_obj_set_flex_align(row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
         lv_obj_t* nameLabel = lv_label_create(row);
-        lv_label_set_text(nameLabel, slot.name.c_str());
+        lv_label_set_text(nameLabel, _model.name(i).c_str());
 
         lv_obj_t* valueLabel = lv_label_create(row);
-        lv_label_set_text(valueLabel, "--");
+        // "--" until the first command, without a unit, as before.
+        lv_label_set_text(valueLabel, _model.value(i).c_str());
         lv_obj_set_style_text_font(valueLabel, &lv_font_montserrat_24, 0);
-
-        slot.valueLabel = valueLabel;
+        _valueLabels[i] = valueLabel;
     }
 }
 
 void ValueView::onCommand(const Command& command) {
-    for (auto& slot : _slots) {
-        if (slot.id == command.id) {
-            String text = command.value.as<String>() + slot.unit;
-            lv_label_set_text(slot.valueLabel, text.c_str());
-            return;
-        }
+    int index = _model.onCommand(command);
+    if (index >= 0 && _valueLabels[index]) {
+        lv_label_set_text(_valueLabels[index], _model.text(index).c_str());
     }
 }
 
 namespace {
 struct ValueViewRegistrar {
     ValueViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ValueView",
-                                                 []() { return std::make_unique<ValueView>(); }, buildValueViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.ValueView", []() { return std::make_unique<ValueView>(); },
+            []() { return riot2::views::ValueModel::buildTemplate("RIoT2.Ard.M5Core2.Node.ValueView"); });
     }
 } valueViewRegistrar;
 }  // namespace

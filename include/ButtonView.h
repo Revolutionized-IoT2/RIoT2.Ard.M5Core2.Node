@@ -5,16 +5,18 @@
 
 #include <vector>
 
+#include <riot2/views/ButtonModel.h>
+
 #include "IView.h"
 
 // 1-4 momentary buttons laid out as a single lv_buttonmatrix row (keeps
-// them evenly stacked left-to-right, unlike an lv_button flex-wrap layout).
-// Tapping a button publishes a Report (id -> "true") for its reportTemplate;
+// them evenly stacked left-to-right, unlike an lv_button flex-wrap layout),
+// rendering the shared riot2::views::ButtonModel. Tapping a button
+// publishes a Report (id -> "true") for its reportTemplate and flashes it;
 // an inbound Command addressed to the matching commandTemplate.id
-// (correlated by shared `address`, as in M5Dial.Node's ButtonView) sets
-// that button's highlighted/on-off visual state. The view's own
-// header/subheader text come from the "header"/"subHeader"
-// deviceParameters.
+// (correlated by shared `address`) sets that button's highlighted/on-off
+// visual state. The view's own header/subheader text come from the
+// "header"/"subHeader" deviceParameters.
 class ButtonView : public IView {
 public:
     ~ButtonView() override;
@@ -24,24 +26,19 @@ public:
 
 private:
     struct Slot {
-        ReportTemplate report;
-        CommandTemplate command;
-        bool hasCommand = false;
-        bool active = false;
-        uint32_t btnId = 0;  // index of this slot's button within _matrix
-        // Back-pointer so the static event/timer callbacks (which only get a
-        // Slot*, since that's what's registered as their user_data) can
-        // still reach publishReport(), a protected IView member.
+        // Back-pointer so the static timer callback (which only gets a
+        // Slot*, since that's what's registered as its user_data) can still
+        // reach the view.
         ButtonView* owner = nullptr;
+        uint32_t btnId = 0;  // index of this slot's button within _matrix and _model
     };
 
+    riot2::views::ButtonModel _model;
     std::vector<Slot> _slots;
     std::vector<lv_timer_t*> _flashTimers;
     std::vector<String> _buttonLabels;  // owns the text each _map entry points into
     std::vector<const char*> _map;      // lv_buttonmatrix_set_map()'s map, "" terminated
     lv_obj_t* _matrix = nullptr;
-    String _header;
-    String _subHeader;
 
     void applyVisualState(uint32_t btnId, bool active);
     void cancelFlashTimers();

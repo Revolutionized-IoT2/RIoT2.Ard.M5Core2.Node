@@ -1,27 +1,11 @@
 #include "ClockView.h"
 
 #include <memory>
-#include <stdlib.h>
-#include <time.h>
-
-#include <riot2/Uuid.h>
 
 #include "ViewFactory.h"
 
 namespace {
-// time(nullptr) returns small values (seconds since boot-ish) before SNTP
-// has synced; treat anything before 2020-01-01 as "not yet synced".
-constexpr time_t kMinValidEpoch = 1577836800;
 constexpr uint32_t kTickMs = 1000;
-
-DeviceConfiguration buildClockViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Clock View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.ClockView";
-    config.deviceParameters = {{"timezone", "EET-2EEST,M3.5.0/3,M10.5.0/4"}};
-    return config;
-}
 }  // namespace
 
 ClockView::~ClockView() {
@@ -31,16 +15,7 @@ ClockView::~ClockView() {
 }
 
 void ClockView::begin(const DeviceConfiguration& config) {
-    // A POSIX TZ string (e.g. "EET-2EEST,M3.5.0/3,M10.5.0/4") so
-    // localtime_r() below reflects the configured timezone, DST included,
-    // instead of the UTC that main.cpp's configTime() call establishes by
-    // default. Left alone (no setenv/tzset call) when unset, preserving
-    // UTC-only behavior.
-    String timezone = findParameter(config.deviceParameters, "timezone", "");
-    if (timezone.length() > 0) {
-        setenv("TZ", timezone.c_str(), 1);
-        tzset();
-    }
+    _model.begin(config);
 }
 
 void ClockView::buildUi(lv_obj_t* parent) {
@@ -60,21 +35,11 @@ void ClockView::buildUi(lv_obj_t* parent) {
 }
 
 void ClockView::updateLabels() {
-    time_t now = time(nullptr);
-    struct tm timeInfo;
-    if (now >= kMinValidEpoch && localtime_r(&now, &timeInfo) != nullptr) {
-        char timeBuf[9];
-        snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-        lv_label_set_text(_timeLabel, timeBuf);
-
-        char dateBuf[16];
-        snprintf(dateBuf, sizeof(dateBuf), "%04d-%02d-%02d", timeInfo.tm_year + 1900, timeInfo.tm_mon + 1,
-                  timeInfo.tm_mday);
-        lv_label_set_text(_dateLabel, dateBuf);
-    } else {
-        lv_label_set_text(_timeLabel, "--:--:--");
-        lv_label_set_text(_dateLabel, "waiting for time sync");
-    }
+    String timeText;
+    String dateText;
+    riot2::views::ClockModel::now(timeText, dateText);
+    lv_label_set_text(_timeLabel, timeText.c_str());
+    lv_label_set_text(_dateLabel, dateText.c_str());
 }
 
 void ClockView::tickCb(lv_timer_t* timer) {
@@ -85,8 +50,9 @@ void ClockView::tickCb(lv_timer_t* timer) {
 namespace {
 struct ClockViewRegistrar {
     ClockViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ClockView",
-                                                 []() { return std::make_unique<ClockView>(); }, buildClockViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.ClockView", []() { return std::make_unique<ClockView>(); },
+            []() { return riot2::views::ClockModel::buildTemplate("RIoT2.Ard.M5Core2.Node.ClockView"); });
     }
 } clockViewRegistrar;
 }  // namespace

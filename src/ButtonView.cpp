@@ -3,13 +3,10 @@
 #include <algorithm>
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "AppColors.h"
 #include "ViewFactory.h"
 
 namespace {
-constexpr uint32_t kFlashMs = 200;
 const lv_color_t kActiveColor = AppColors::indigo();
 }  // namespace
 
@@ -26,32 +23,16 @@ void ButtonView::cancelFlashTimers() {
 
 void ButtonView::begin(const DeviceConfiguration& config) {
     cancelFlashTimers();
-    _slots.clear();
-    _header = findParameter(config.deviceParameters, "header", config.name);
-    _subHeader = findParameter(config.deviceParameters, "subHeader", "");
-
-    for (const auto& report : config.reportTemplates) {
-        Slot slot;
-        slot.report = report;
-        slot.owner = this;
-
-        for (const auto& cmd : config.commandTemplates) {
-            if (report.address.length() > 0 && cmd.address == report.address) {
-                slot.command = cmd;
-                slot.hasCommand = true;
-                break;
-            }
-        }
-
-        _slots.push_back(slot);
-        if (_slots.size() >= 4) {
-            break;
-        }
+    _model.begin(config);
+    _slots.assign(_model.size(), Slot());
+    for (size_t i = 0; i < _slots.size(); ++i) {
+        _slots[i].owner = this;
+        _slots[i].btnId = static_cast<uint32_t>(i);
     }
 }
 
 void ButtonView::buildUi(lv_obj_t* parent) {
-    lv_obj_t* content = buildHeaderArea(parent, _header, _subHeader);
+    lv_obj_t* content = buildHeaderArea(parent, _model.header(), _model.subHeader());
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
@@ -67,8 +48,8 @@ void ButtonView::buildUi(lv_obj_t* parent) {
     // begin(), so Slot addresses stay stable for the lifetime of the view -
     // safe to hand out as timer user_data below.
     _buttonLabels.clear();
-    for (auto& slot : _slots) {
-        _buttonLabels.push_back(slot.report.name);
+    for (size_t i = 0; i < _model.size(); ++i) {
+        _buttonLabels.push_back(_model.name(i));
     }
 
     _map.clear();
@@ -89,10 +70,6 @@ void ButtonView::buildUi(lv_obj_t* parent) {
     lv_obj_set_style_bg_color(_matrix, kActiveColor, LV_PART_ITEMS | LV_STATE_CHECKED);
     lv_obj_add_event_cb(_matrix, matrixEventCb, LV_EVENT_VALUE_CHANGED, this);
 
-    for (size_t i = 0; i < _slots.size(); ++i) {
-        _slots[i].btnId = static_cast<uint32_t>(i);
-    }
-
     // Needs real (pct-resolved) pixel sizes to know each button's share of
     // the matrix width - lv_obj_update_layout() forces that resolution now
     // rather than waiting for the next lv_timer_handler() pass.
@@ -101,13 +78,9 @@ void ButtonView::buildUi(lv_obj_t* parent) {
 }
 
 void ButtonView::onCommand(const Command& command) {
-    for (auto& slot : _slots) {
-        if (slot.hasCommand && slot.command.id == command.id) {
-            bool value = command.value.is<bool>() ? command.value.as<bool>() : command.value.as<int>() != 0;
-            slot.active = value;
-            applyVisualState(slot.btnId, slot.active);
-            return;
-        }
+    int index = _model.onCommand(command);
+    if (index >= 0) {
+        applyVisualState(static_cast<uint32_t>(index), _model.isActive(static_cast<size_t>(index)));
     }
 }
 
@@ -170,13 +143,16 @@ void ButtonView::matrixEventCb(lv_event_t* event) {
         return;
     }
 
-    Slot* slot = &self->_slots[btnId];
-    slot->owner->publishReport(Report{slot->report.id, "true"});
+    Report report;
+    if (!self->_model.press(btnId, report)) {
+        return;
+    }
+    self->publishReport(report);
 
     // Flash on regardless of `active` (a visible tap acknowledgement), then
     // settle back to whatever the last inbound command says it should be.
     self->applyVisualState(btnId, true);
-    lv_timer_t* timer = lv_timer_create(flashTimerCb, kFlashMs, slot);
+    lv_timer_t* timer = lv_timer_create(flashTimerCb, riot2::views::ButtonModel::kFlashMs, &self->_slots[btnId]);
     self->_flashTimers.push_back(timer);
     lv_timer_set_repeat_count(timer, 1);
 }
@@ -185,40 +161,15 @@ void ButtonView::flashTimerCb(lv_timer_t* timer) {
     auto* slot = static_cast<Slot*>(lv_timer_get_user_data(timer));
     auto& timers = slot->owner->_flashTimers;
     timers.erase(std::remove(timers.begin(), timers.end(), timer), timers.end());
-    slot->owner->applyVisualState(slot->btnId, slot->active);
+    slot->owner->applyVisualState(slot->btnId, slot->owner->_model.isActive(slot->btnId));
 }
 
 namespace {
-DeviceConfiguration buildButtonViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Button View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.ButtonView";
-    config.deviceParameters = {{"header", "Buttons"}, {"subHeader", "tap a button"}};
-
-    for (const char* address : {"btn-1", "btn-2"}) {
-        CommandTemplate cmd;
-        cmd.id = riot2::newId();
-        cmd.type = riot2::ValueType::Boolean;
-        cmd.name = String("Button ") + address;
-        cmd.address = address;
-        config.commandTemplates.push_back(cmd);
-
-        ReportTemplate report;
-        report.id = riot2::newId();
-        report.type = riot2::ValueType::Boolean;
-        report.name = String("Button ") + address;
-        report.address = address;
-        config.reportTemplates.push_back(report);
-    }
-    return config;
-}
-
 struct ButtonViewRegistrar {
     ButtonViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ButtonView",
-                                                 []() { return std::make_unique<ButtonView>(); },
-                                                 buildButtonViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.ButtonView", []() { return std::make_unique<ButtonView>(); },
+            []() { return riot2::views::ButtonModel::buildTemplate("RIoT2.Ard.M5Core2.Node.ButtonView"); });
     }
 } buttonViewRegistrar;
 }  // namespace

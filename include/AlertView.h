@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include <riot2/views/AlertModel.h>
+
 #include "IView.h"
 
 // Transient popup pushed by an inbound Command (e.g. doorbell, alarm) -
@@ -12,11 +14,11 @@
 // ViewManager::rebuild() skips buildUi() for isAlert() views, so this is a
 // no-op empty override.
 //
-// The Command's `value` is expected to be an object with "title" and
-// "message" fields (e.g. { "title": "Doorbell", "message": "Someone is at
-// the front door" }); a plain string is used directly as the message
-// instead. Falls back to a generic "Alert" title / empty message when the
-// value doesn't specify them.
+// The Command's `value` is parsed by the shared riot2::views::AlertModel:
+// an object with "title" and "message" fields (e.g. { "title": "Doorbell",
+// "message": "Someone is at the front door" }), or a plain string used
+// directly as the message. Falls back to a generic "Alert" title / empty
+// message when the value doesn't specify them; "subHeader" isn't shown here.
 //
 // The Command's `value` object may also include a "soundEnabled" field
 // (default false) controlling whether Buzzer::alert() plays.
@@ -27,4 +29,7 @@ public:
     void onCommand(const Command& command) override;
 
     bool isAlert() const override { return true; }
+
+private:
+    riot2::views::AlertModel _model;
 };

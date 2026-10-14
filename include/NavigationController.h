@@ -61,7 +61,7 @@ public:
 private:
     // Pairs a tile's lv_obj_t* with the NavigationController instance and
     // tab index it should jump to - stable heap addresses for event
-    // user_data (see SceneSelectorView's identical rationale for _slots).
+    // user_data.
     struct MenuTile {
         NavigationController* self = nullptr;
         uint32_t tabIndex = 0;

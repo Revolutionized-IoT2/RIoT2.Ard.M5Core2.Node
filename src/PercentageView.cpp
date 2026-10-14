@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "ViewFactory.h"
 
 namespace {
@@ -11,8 +9,7 @@ constexpr lv_coord_t kArcSize = 160;
 }  // namespace
 
 void PercentageView::begin(const DeviceConfiguration& config) {
-    _commandId = config.commandTemplates.empty() ? String() : config.commandTemplates.front().id;
-    _reportId = config.reportTemplates.empty() ? String() : config.reportTemplates.front().id;
+    _model.begin(config);
 }
 
 void PercentageView::buildUi(lv_obj_t* parent) {
@@ -21,69 +18,48 @@ void PercentageView::buildUi(lv_obj_t* parent) {
 
     _arc = lv_arc_create(parent);
     lv_obj_set_size(_arc, kArcSize, kArcSize);
-    lv_arc_set_range(_arc, 0, 100);
-    lv_arc_set_value(_arc, 0);
+    lv_arc_set_range(_arc, riot2::views::PercentageModel::kMinimum, riot2::views::PercentageModel::kMaximum);
+    lv_arc_set_value(_arc, _model.value());
     lv_obj_add_event_cb(_arc, arcReleasedCb, LV_EVENT_RELEASED, this);
 
     _valueLabel = lv_label_create(_arc);
     lv_obj_center(_valueLabel);
-    updateValueLabel(0);
+    updateValueLabel();
 }
 
-void PercentageView::updateValueLabel(int32_t value) {
+void PercentageView::updateValueLabel() {
     if (!_valueLabel) {
         return;
     }
-    lv_label_set_text(_valueLabel, (String(value) + "%").c_str());
+    lv_label_set_text(_valueLabel, (String(_model.value()) + "%").c_str());
 }
 
 void PercentageView::onCommand(const Command& command) {
-    int32_t value = command.value.as<int32_t>();
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    if (_arc) {
-        lv_arc_set_value(_arc, value);
+    if (!_model.onCommand(command)) {
+        return;
     }
-    updateValueLabel(value);
+    if (_arc) {
+        lv_arc_set_value(_arc, _model.value());
+    }
+    updateValueLabel();
 }
 
 void PercentageView::arcReleasedCb(lv_event_t* event) {
     auto* self = static_cast<PercentageView*>(lv_event_get_user_data(event));
-    int32_t value = lv_arc_get_value(self->_arc);
-    self->updateValueLabel(value);
-    if (self->_reportId.length() > 0) {
-        self->publishReport(Report{self->_reportId, String(value)});
+    Report report;
+    bool hasReport = self->_model.set(lv_arc_get_value(self->_arc), report);
+    self->updateValueLabel();
+    if (hasReport) {
+        self->publishReport(report);
     }
 }
 
 namespace {
-DeviceConfiguration buildPercentageViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Percentage View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.PercentageView";
-
-    CommandTemplate cmd;
-    cmd.id = riot2::newId();
-    cmd.type = riot2::ValueType::Number;
-    cmd.name = "Percentage";
-    cmd.address = "dimmer-1";
-    config.commandTemplates.push_back(cmd);
-
-    ReportTemplate report;
-    report.id = riot2::newId();
-    report.type = riot2::ValueType::Number;
-    report.name = "Percentage";
-    report.address = "dimmer-1";
-    config.reportTemplates.push_back(report);
-    return config;
-}
-
 struct PercentageViewRegistrar {
     PercentageViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.PercentageView",
-                                                 []() { return std::make_unique<PercentageView>(); },
-                                                 buildPercentageViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.PercentageView", []() { return std::make_unique<PercentageView>(); },
+            []() { return riot2::views::PercentageModel::buildTemplate("RIoT2.Ard.M5Core2.Node.PercentageView"); });
     }
 } percentageViewRegistrar;
 }  // namespace

@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include <riot2/views/ColorSchemeModel.h>
+
 #include "IView.h"
 
 // HSV color picker: LVGL v9 dropped lv_colorwheel (present in v8, absent
@@ -20,10 +22,11 @@
 //      picks saturation (x) and value (y).
 //   3. A swatch previewing the fully composed color live, and a label
 //      showing its "#RRGGBB" hex value.
-// Report/Command value format matches M5Dial.Node's ColorSchemeView: a
-// "#RRGGBB" JSON string. Reports are only published on release (see
-// SliderView/PercentageView's identical pattern), not on every drag tick,
-// to avoid flooding MQTT with a report per pixel of movement.
+// The color lives in the shared riot2::views::ColorSchemeModel (HSV
+// picker); Report/Command value format matches M5Dial.Node's
+// ColorSchemeView: a "#RRGGBB" JSON string. Reports are only published on
+// release (see SliderView/PercentageView's identical pattern), not on every
+// drag tick, to avoid flooding MQTT with a report per pixel of movement.
 class ColorSchemeView : public IView {
 public:
     void begin(const DeviceConfiguration& config) override;
@@ -31,12 +34,7 @@ public:
     void onCommand(const Command& command) override;
 
 private:
-    String _commandId;
-    String _reportId;
-
-    int32_t _hue = 0;    // 0-359
-    int32_t _sat = 100;  // 0-100
-    int32_t _val = 100;  // 0-100
+    riot2::views::ColorSchemeModel _model{riot2::views::ColorSchemeModel::Picker::Hsv};
 
     lv_obj_t* _swatch = nullptr;
     lv_obj_t* _svPad = nullptr;
@@ -52,11 +50,9 @@ private:
     lv_grad_dsc_t _svHueGrad{};
     lv_grad_dsc_t _svShadeGrad{};
 
-    void setHue(int32_t hue);
-    void setSatVal(int32_t sat, int32_t val);
-    void updateCurrentColor();
-    void repositionSvHandle();
-    void repositionHueHandle();
+    void showHue();
+    void showSatVal();
+    void showCurrentColor();
     void publishCurrentColor();
 
     static void svPadTouchCb(lv_event_t* event);

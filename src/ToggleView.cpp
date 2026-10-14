@@ -2,30 +2,14 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "ViewFactory.h"
 
 void ToggleView::begin(const DeviceConfiguration& config) {
-    _slots.clear();
-
-    for (const auto& report : config.reportTemplates) {
-        Slot slot;
-        slot.report = report;
-        slot.owner = this;
-
-        for (const auto& cmd : config.commandTemplates) {
-            if (report.address.length() > 0 && cmd.address == report.address) {
-                slot.command = cmd;
-                slot.hasCommand = true;
-                break;
-            }
-        }
-
-        _slots.push_back(slot);
-        if (_slots.size() >= 2) {
-            break;
-        }
+    _model.begin(config);
+    _rows.assign(_model.size(), Row());
+    for (size_t i = 0; i < _rows.size(); ++i) {
+        _rows[i].owner = this;
+        _rows[i].index = i;
     }
 }
 
@@ -33,83 +17,66 @@ void ToggleView::buildUi(lv_obj_t* parent) {
     lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    if (_slots.empty()) {
+    if (_rows.empty()) {
         lv_obj_t* emptyLabel = lv_label_create(parent);
         lv_label_set_text(emptyLabel, "No switches");
         return;
     }
 
-    // _slots is never resized again after begin(), so these element
+    // _rows is never resized again after begin(), so these element
     // addresses stay stable for the lifetime of the view - safe to hand out
     // as event callback user_data below.
-    for (auto& slot : _slots) {
-        lv_obj_t* row = lv_obj_create(parent);
-        lv_obj_set_width(row, lv_pct(90));
-        lv_obj_set_height(row, LV_SIZE_CONTENT);
-        lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_border_width(row, 0, 0);
-        lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
-        lv_obj_set_flex_align(row, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    for (auto& row : _rows) {
+        lv_obj_t* container = lv_obj_create(parent);
+        lv_obj_set_width(container, lv_pct(90));
+        lv_obj_set_height(container, LV_SIZE_CONTENT);
+        lv_obj_set_style_bg_opa(container, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_border_width(container, 0, 0);
+        lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(container, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-        lv_obj_t* label = lv_label_create(row);
-        lv_label_set_text(label, slot.report.name.c_str());
+        lv_obj_t* label = lv_label_create(container);
+        lv_label_set_text(label, _model.name(row.index).c_str());
 
-        lv_obj_t* switchObj = lv_switch_create(row);
-        lv_obj_add_event_cb(switchObj, switchToggledCb, LV_EVENT_VALUE_CHANGED, &slot);
+        row.switchObj = lv_switch_create(container);
+        lv_obj_add_event_cb(row.switchObj, switchToggledCb, LV_EVENT_VALUE_CHANGED, &row);
+        showState(row.index);
+    }
+}
 
-        slot.switchObj = switchObj;
+void ToggleView::showState(size_t index) {
+    lv_obj_t* switchObj = _rows[index].switchObj;
+    if (!switchObj) {
+        return;
+    }
+    if (_model.isActive(index)) {
+        lv_obj_add_state(switchObj, LV_STATE_CHECKED);
+    } else {
+        lv_obj_remove_state(switchObj, LV_STATE_CHECKED);
     }
 }
 
 void ToggleView::onCommand(const Command& command) {
-    for (auto& slot : _slots) {
-        if (slot.hasCommand && slot.command.id == command.id) {
-            bool value = command.value.is<bool>() ? command.value.as<bool>() : command.value.as<int>() != 0;
-            if (value) {
-                lv_obj_add_state(slot.switchObj, LV_STATE_CHECKED);
-            } else {
-                lv_obj_remove_state(slot.switchObj, LV_STATE_CHECKED);
-            }
-            return;
-        }
+    int index = _model.onCommand(command);
+    if (index >= 0) {
+        showState(static_cast<size_t>(index));
     }
 }
 
 void ToggleView::switchToggledCb(lv_event_t* event) {
-    auto* slot = static_cast<Slot*>(lv_event_get_user_data(event));
-    bool active = lv_obj_has_state(slot->switchObj, LV_STATE_CHECKED);
-    slot->owner->publishReport(Report{slot->report.id, active ? "true" : "false"});
+    auto* row = static_cast<Row*>(lv_event_get_user_data(event));
+    Report report;
+    if (row->owner->_model.set(row->index, lv_obj_has_state(row->switchObj, LV_STATE_CHECKED), report)) {
+        row->owner->publishReport(report);
+    }
 }
 
 namespace {
-DeviceConfiguration buildToggleViewTemplate() {
-    DeviceConfiguration config;
-    config.id = riot2::newId();
-    config.name = "Toggle View";
-    config.classFullName = "RIoT2.Ard.M5Core2.Node.ToggleView";
-
-    for (const char* address : {"relay-1", "relay-2"}) {
-        CommandTemplate cmd;
-        cmd.id = riot2::newId();
-        cmd.type = riot2::ValueType::Boolean;
-        cmd.name = String("Toggle ") + address;
-        cmd.address = address;
-        config.commandTemplates.push_back(cmd);
-
-        ReportTemplate report;
-        report.id = riot2::newId();
-        report.type = riot2::ValueType::Boolean;
-        report.name = String("Toggle ") + address;
-        report.address = address;
-        config.reportTemplates.push_back(report);
-    }
-    return config;
-}
-
 struct ToggleViewRegistrar {
     ToggleViewRegistrar() {
-        ViewFactory::instance().registerCreator("RIoT2.Ard.M5Core2.Node.ToggleView",
-                                                 []() { return std::make_unique<ToggleView>(); }, buildToggleViewTemplate);
+        ViewFactory::instance().registerCreator(
+            "RIoT2.Ard.M5Core2.Node.ToggleView", []() { return std::make_unique<ToggleView>(); },
+            []() { return riot2::views::ToggleModel::buildTemplate("RIoT2.Ard.M5Core2.Node.ToggleView", 2); });
     }
 } toggleViewRegistrar;
 }  // namespace

@@ -2,16 +2,14 @@
 
 #include <memory>
 
-#include <riot2/Uuid.h>
-
 #include "Buzzer.h"
 #include "HapticFeedback.h"
 #include "ViewFactory.h"
 
+using riot2::views::TimerModel;
+
 namespace {
 constexpr uint32_t kTickMs = 1000;
-constexpr int kRingCount = 6;                  // number of beeps in the "egg timer ring" pattern
-constexpr uint32_t kRingIntervalMs = 260;       // spacing between those beeps
 constexpr lv_coord_t kBarWidth = 220;
 constexpr lv_coord_t kBarHeight = 24;
 constexpr lv_coord_t kSpinboxButtonSize = 40;
@@ -27,29 +25,7 @@ TimerView::~TimerView() {
 }
 
 void TimerView::begin(const DeviceConfiguration& config) {
-    _name = config.name;
-    _commandId = config.commandTemplates.empty() ? String() : config.commandTemplates.front().id;
-    _reportId = config.reportTemplates.empty() ? String() : config.reportTemplates.front().id;
-
-    _stepMinutes = findParameter(config.deviceParameters, "stepMinutes", "1").toInt();
-    if (_stepMinutes <= 0) {
-        _stepMinutes = 1;
-    }
-    _maxMinutes = findParameter(config.deviceParameters, "maxMinutes", "60").toInt();
-    if (_maxMinutes < _stepMinutes) {
-        _maxMinutes = _stepMinutes;
-    }
-    _minutes = findParameter(config.deviceParameters, "defaultMinutes", "5").toInt();
-    if (_minutes < _stepMinutes) {
-        _minutes = _stepMinutes;
-    }
-    if (_minutes > _maxMinutes) {
-        _minutes = _maxMinutes;
-    }
-    _beepOnComplete = findParameter(config.deviceParameters, "beepOnComplete", "false").equalsIgnoreCase("true");
-
-    _phase = Phase::Setting;
-    _totalSeconds = 0;
+    _model.begin(config);
 }
 
 void TimerView::buildUi(lv_obj_t* parent) {
@@ -77,10 +53,10 @@ void TimerView::buildUi(lv_obj_t* parent) {
     lv_obj_add_event_cb(decrementButton, spinboxDecrementTappedCb, LV_EVENT_CLICKED, this);
 
     _spinbox = lv_spinbox_create(spinboxRow);
-    lv_spinbox_set_range(_spinbox, _stepMinutes, _maxMinutes);
-    lv_spinbox_set_step(_spinbox, _stepMinutes);
-    lv_spinbox_set_digit_format(_spinbox, String(_maxMinutes).length(), 0);
-    lv_spinbox_set_value(_spinbox, _minutes);
+    lv_spinbox_set_range(_spinbox, _model.stepMinutes(), _model.maxMinutes());
+    lv_spinbox_set_step(_spinbox, _model.stepMinutes());
+    lv_spinbox_set_digit_format(_spinbox, String(_model.maxMinutes()).length(), 0);
+    lv_spinbox_set_value(_spinbox, _model.minutes());
     lv_obj_set_width(_spinbox, 90);
 
     lv_obj_t* incrementButton = lv_button_create(spinboxRow);
@@ -130,51 +106,44 @@ void TimerView::buildUi(lv_obj_t* parent) {
     lv_obj_center(dismissLabel);
     lv_obj_add_event_cb(dismissButton, dismissButtonTappedCb, LV_EVENT_CLICKED, this);
 
-    showPhase(Phase::Setting);
+    showPhase();
 }
 
-void TimerView::showPhase(Phase phase) {
-    _phase = phase;
+void TimerView::showPhase() {
+    TimerModel::Phase phase = _model.phase();
     if (_settingContainer) {
-        (phase == Phase::Setting ? lv_obj_remove_flag : lv_obj_add_flag)(_settingContainer, LV_OBJ_FLAG_HIDDEN);
+        (phase == TimerModel::Phase::Setting ? lv_obj_remove_flag : lv_obj_add_flag)(_settingContainer,
+                                                                                     LV_OBJ_FLAG_HIDDEN);
     }
     if (_runningContainer) {
-        (phase == Phase::Running ? lv_obj_remove_flag : lv_obj_add_flag)(_runningContainer, LV_OBJ_FLAG_HIDDEN);
+        (phase == TimerModel::Phase::Running ? lv_obj_remove_flag : lv_obj_add_flag)(_runningContainer,
+                                                                                     LV_OBJ_FLAG_HIDDEN);
     }
     if (_doneContainer) {
-        (phase == Phase::Done ? lv_obj_remove_flag : lv_obj_add_flag)(_doneContainer, LV_OBJ_FLAG_HIDDEN);
+        (phase == TimerModel::Phase::Done ? lv_obj_remove_flag : lv_obj_add_flag)(_doneContainer, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
 void TimerView::onCommand(const Command& command) {
-    if (_phase != Phase::Setting || _commandId.length() == 0 || command.id != _commandId) {
-        return;
-    }
-    int minutes = command.value.as<int>();
-    if (minutes < _stepMinutes) {
-        minutes = _stepMinutes;
-    }
-    if (minutes > _maxMinutes) {
-        minutes = _maxMinutes;
-    }
-    _minutes = minutes;
-
-    if (_spinbox) {
-        lv_spinbox_set_value(_spinbox, _minutes);
+    if (_model.onCommand(command) && _spinbox) {
+        lv_spinbox_set_value(_spinbox, _model.minutes());
     }
 }
 
-void TimerView::start() {
-    _minutes = lv_spinbox_get_value(_spinbox);
+void TimerView::adjust(int delta) {
+    _model.adjust(delta);
+    lv_spinbox_set_value(_spinbox, _model.minutes());
+}
 
-    _totalSeconds = _minutes * 60;
-    _startMs = millis();
-    _ringsRemaining = 0;
-    lv_bar_set_range(_countdownBar, 0, _totalSeconds);
-    lv_bar_set_value(_countdownBar, _totalSeconds, LV_ANIM_OFF);
+void TimerView::start() {
+    if (!_model.start()) {
+        return;
+    }
+    lv_bar_set_range(_countdownBar, 0, static_cast<int32_t>(_model.totalSeconds()));
+    lv_bar_set_value(_countdownBar, static_cast<int32_t>(_model.totalSeconds()), LV_ANIM_OFF);
     updateCountdown();
 
-    showPhase(Phase::Running);
+    showPhase();
     Buzzer::confirm();
     HapticFeedback::instance().confirm();
 
@@ -188,7 +157,10 @@ void TimerView::cancel() {
         lv_timer_delete(_tickTimer);
         _tickTimer = nullptr;
     }
-    showPhase(Phase::Setting);
+    if (!_model.cancel()) {
+        return;
+    }
+    showPhase();
     Buzzer::tap();
     HapticFeedback::instance().tap();
 }
@@ -198,70 +170,55 @@ void TimerView::finish() {
         lv_timer_delete(_tickTimer);
         _tickTimer = nullptr;
     }
-    showPhase(Phase::Done);
+    showPhase();
 
-    if (_beepOnComplete) {
-        _ringsRemaining = kRingCount;
+    if (_model.beepOnComplete()) {
         if (!_ringTimer) {
-            _ringTimer = lv_timer_create(ringTimerCb, kRingIntervalMs, this);
+            _ringTimer = lv_timer_create(ringTimerCb, TimerModel::kRingIntervalMs, this);
         }
     } else {
         Buzzer::confirm();
         HapticFeedback::instance().confirm();
     }
 
-    if (_reportId.length() > 0) {
-        publishReport(Report{_reportId, "0"});
+    Report report;
+    if (_model.completionReport(report)) {
+        publishReport(report);
     }
 }
 
 void TimerView::updateCountdown() {
-    long elapsedSeconds = static_cast<long>(millis() - _startMs) / 1000;
-    long remaining = _totalSeconds - elapsedSeconds;
-    if (remaining < 0) {
-        remaining = 0;
-    }
-
-    lv_bar_set_value(_countdownBar, static_cast<int32_t>(remaining), LV_ANIM_OFF);
-
-    int mm = static_cast<int>(remaining / 60);
-    int ss = static_cast<int>(remaining % 60);
-    char buf[8];
-    snprintf(buf, sizeof(buf), "%02d:%02d", mm, ss);
-    lv_label_set_text(_countdownLabel, buf);
+    lv_bar_set_value(_countdownBar, static_cast<int32_t>(_model.remainingSeconds()), LV_ANIM_OFF);
+    lv_label_set_text(_countdownLabel, _model.remainingText().c_str());
 }
 
 void TimerView::tickTimerCb(lv_timer_t* timer) {
     auto* self = static_cast<TimerView*>(lv_timer_get_user_data(timer));
-    long elapsedSeconds = static_cast<long>(millis() - self->_startMs) / 1000;
-    if (elapsedSeconds >= self->_totalSeconds) {
-        self->updateCountdown();
+    self->updateCountdown();
+    if (self->_model.finishIfElapsed()) {
         self->finish();  // deletes _tickTimer (the very timer invoking this callback) - safe, lv_timer_delete()
                           // just marks it for removal at the end of the current lv_timer_handler() pass.
-        return;
     }
-    self->updateCountdown();
 }
 
 void TimerView::ringTimerCb(lv_timer_t* timer) {
     auto* self = static_cast<TimerView*>(lv_timer_get_user_data(timer));
-    Buzzer::ring();
-    HapticFeedback::instance().ring();
-    self->_ringsRemaining--;
-    if (self->_ringsRemaining <= 0) {
+    if (self->_model.takeRing()) {
+        Buzzer::ring();
+        HapticFeedback::instance().ring();
+    }
+    if (self->_model.ringsRemaining() <= 0) {
         lv_timer_delete(timer);
         self->_ringTimer = nullptr;
     }
 }
 
 void TimerView::spinboxIncrementTappedCb(lv_event_t* event) {
-    auto* self = static_cast<TimerView*>(lv_event_get_user_data(event));
-    lv_spinbox_increment(self->_spinbox);
+    static_cast<TimerView*>(lv_event_get_user_data(event))->adjust(1);
 }
 
 void TimerView::spinboxDecrementTappedCb(lv_event_t* event) {
-    auto* self = static_cast<TimerView*>(lv_event_get_user_data(event));
-    lv_spinbox_decrement(self->_spinbox);
+    static_cast<TimerView*>(lv_event_get_user_data(event))->adjust(-1);
 }
 
 void TimerView::startButtonTappedCb(lv_event_t* event) {
@@ -274,12 +231,12 @@ void TimerView::cancelButtonTappedCb(lv_event_t* event) {
 
 void TimerView::dismissButtonTappedCb(lv_event_t* event) {
     auto* self = static_cast<TimerView*>(lv_event_get_user_data(event));
-    self->_ringsRemaining = 0;  // stop any in-progress "egg timer ring" beeps
+    self->_model.dismiss();  // stops any in-progress "egg timer ring" beeps
     if (self->_ringTimer) {
         lv_timer_delete(self->_ringTimer);
         self->_ringTimer = nullptr;
     }
-    self->showPhase(Phase::Setting);
+    self->showPhase();
     Buzzer::tap();
     HapticFeedback::instance().tap();
 }
@@ -288,29 +245,8 @@ namespace {
 struct TimerViewRegistrar {
     TimerViewRegistrar() {
         ViewFactory::instance().registerCreator(
-            "RIoT2.Ard.M5Core2.Node.TimerView", []() { return std::make_unique<TimerView>(); }, [] {
-                DeviceConfiguration config;
-                config.id = riot2::newId();
-                config.name = "Timer View";
-                config.classFullName = "RIoT2.Ard.M5Core2.Node.TimerView";
-                config.deviceParameters = {
-                    {"defaultMinutes", "5"}, {"stepMinutes", "1"}, {"maxMinutes", "60"}, {"beepOnComplete", "false"}};
-
-                CommandTemplate cmd;
-                cmd.id = riot2::newId();
-                cmd.type = riot2::ValueType::Number;
-                cmd.name = "Timer";
-                cmd.address = "timer-1";
-                config.commandTemplates.push_back(cmd);
-
-                ReportTemplate report;
-                report.id = riot2::newId();
-                report.type = riot2::ValueType::Number;
-                report.name = "Timer";
-                report.address = "timer-1";
-                config.reportTemplates.push_back(report);
-                return config;
-            });
+            "RIoT2.Ard.M5Core2.Node.TimerView", []() { return std::make_unique<TimerView>(); },
+            []() { return TimerModel::buildTemplate("RIoT2.Ard.M5Core2.Node.TimerView", true); });
     }
 } timerViewRegistrar;
 }  // namespace
