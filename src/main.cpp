@@ -68,7 +68,7 @@ riot2::NodeRuntimeHooks runtimeHooks() {
     hooks.viewTemplates = [] { return ViewFactory::instance().configurationTemplates(); };
     hooks.isView = [](const String& classFullName) { return ViewFactory::instance().isRegistered(classFullName); };
     hooks.onConfiguration = applyConfiguration;
-    hooks.onCommand = [](const Command& command) { viewManager.onCommand(command.id, command); };
+    hooks.onCommand = [](const Command& command) { return viewManager.onCommand(command.id, command); };
     hooks.onConfigurationRequested = [] {
         if (!tabsInitialized) {
             splashView.setConfigStatus("Config: fetching from Orchestrator...");
