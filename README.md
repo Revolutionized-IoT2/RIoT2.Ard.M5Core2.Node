@@ -80,6 +80,11 @@ To factory-reset provisioning, hold **BtnA and BtnC together** for about five se
 - The vibration motor is enabled by the provisioning setting and is separate from per-command sound.
 - The Core2 Grove map is A1/GPIO32, A2/GPIO33, B1/GPIO26 and B2/GPIO36. B2 is input-only; output
   attempts are logged and ignored.
+- A [WiegandI2C](https://github.com/Revolutionized-IoT2/RIoT2.Ard.WiegandI2C) card reader module
+  plugs into PORT.A (A1/GPIO32 and A2/GPIO33 are SDA and SCL): add the *Wiegand Reader* peripheral
+  (`RIoT2.Ard.M5Core2.Node.WiegandI2CPeripheral`, 0.6.0) and every card read is a text report.
+  Wire the module's IRQ to B1 or B2 and set `irq` to read it only when a code waits. PORT.A then
+  can't also have an RFID2 unit or GPIO slots A1/A2.
 
 ## OTA
 

@@ -61,7 +61,7 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 | `include/Rfid2Peripheral.h`, `src/Rfid2Peripheral.cpp` | Core2 RFID-to-peripheral bridge |
 | `src/main.cpp` | Board setup, splash/provisioning/diagnostics UI, `NodeRuntimeHooks` and the main loop |
 | `include/TouchGestures.h`, `src/TouchGestures.cpp` | Scroll-vs-tap tracking for the virtual buttons, BtnA+BtnC factory reset |
-| `include/BoardPeripherals.h`, `src/BoardPeripherals.cpp` | Grove pin map and peripheral registration (GPIO, RFID2) |
+| `include/BoardPeripherals.h`, `src/BoardPeripherals.cpp` | Grove pin map and peripheral registration (GPIO, RFID2, Wiegand) |
 
 ## Contracts consumed here
 
@@ -119,4 +119,4 @@ Device commands, only when a Core2 is connected and flashing/monitoring was requ
 - Plan [M5](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m05-firmware-node-runtime.md):
   shared firmware view logic and node runtime.
 - [Feature ideas](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/features.md#firmware):
-  Wiegand peripheral integration and OTA channel improvements.
+  OTA channel improvements (the Wiegand peripheral is done, I42).
